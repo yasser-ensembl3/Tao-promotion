@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { DashboardHeader } from "./header"
 import { OverviewSection } from "./overview-section"
+import { MetricsSection } from "./metrics-section"
+import { ProjectTrackingSection } from "./project-tracking-section"
 import { GoalsMetricsSection } from "./goals-metrics-section"
+import { ReportsSection } from "./reports-section"
 import { UserFeedbackSection } from "./user-feedback-section"
 import { GuidesDocsSection } from "./guides-docs-section"
 
@@ -50,7 +53,10 @@ export function MainDashboard() {
         <DashboardHeader />
         <div className="space-y-6">
           <OverviewSection />
+          <MetricsSection />
+          <ProjectTrackingSection />
           <GoalsMetricsSection />
+          <ReportsSection />
           <UserFeedbackSection />
           <GuidesDocsSection />
         </div>
