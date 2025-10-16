@@ -53,12 +53,12 @@ export function MainDashboard() {
         <DashboardHeader />
         <div className="space-y-6">
           <OverviewSection />
-          <MetricsSection />
+          <GuidesDocsSection />
           <ProjectTrackingSection />
           <GoalsMetricsSection />
+          <MetricsSection />
           <ReportsSection />
           <UserFeedbackSection />
-          <GuidesDocsSection />
         </div>
       </div>
     </div>

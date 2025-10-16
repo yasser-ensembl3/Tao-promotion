@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DashboardSection } from "./dashboard-section"
+import { useProjectConfig } from "@/contexts/project-config-context"
+import { ExternalLink } from "lucide-react"
 
 interface Link {
   id: string
@@ -35,6 +37,7 @@ const LINK_TYPES = [
 ]
 
 export function GuidesDocsSection() {
+  const { config } = useProjectConfig()
   const [customLinks, setCustomLinks] = useState<Link[]>([])
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -43,30 +46,6 @@ export function GuidesDocsSection() {
     url: "",
     description: "",
     type: "other"
-  })
-
-  // Default links that can be edited
-  const [defaultLinks, setDefaultLinks] = useState({
-    googleDrive: {
-      title: "Google Drive Folder",
-      url: process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_URL || "",
-      description: "Main project documentation",
-      type: "drive"
-    },
-    notion: {
-      title: "Notion Database",
-      url: process.env.NEXT_PUBLIC_NOTION_DATABASE_ID
-        ? `https://notion.so/${process.env.NEXT_PUBLIC_NOTION_DATABASE_ID}`
-        : "",
-      description: "Project tracking and tasks",
-      type: "notion"
-    },
-    github: {
-      title: "GitHub Repository",
-      url: "https://github.com/GuillaumeRacine/MiniVault",
-      description: "Source code repository",
-      type: "github"
-    }
   })
 
   const handleOpenAdd = () => {
@@ -87,53 +66,28 @@ export function GuidesDocsSection() {
     setOpen(true)
   }
 
-  const handleOpenEditDefault = (linkKey: "googleDrive" | "notion" | "github") => {
-    setEditingId(linkKey)
-    const link = defaultLinks[linkKey]
-    setFormData({
-      title: link.title,
-      url: link.url,
-      description: link.description,
-      type: link.type
-    })
-    setOpen(true)
-  }
-
   const handleSaveLink = () => {
     if (!formData.title || !formData.url) return
 
-    // Check if editing a default link
-    if (editingId === "googleDrive" || editingId === "notion" || editingId === "github") {
-      setDefaultLinks({
-        ...defaultLinks,
-        [editingId]: {
-          title: formData.title,
-          url: formData.url,
-          description: formData.description,
-          type: formData.type
-        }
-      })
-    } else {
-      const linkData = {
-        title: formData.title,
-        description: formData.description,
-        url: formData.url,
-        type: LINK_TYPES.find(t => t.value === formData.type)?.label || "Other"
-      }
+    const linkData = {
+      title: formData.title,
+      description: formData.description,
+      url: formData.url,
+      type: LINK_TYPES.find(t => t.value === formData.type)?.label || "Other"
+    }
 
-      if (editingId) {
-        // Update existing custom link
-        setCustomLinks(customLinks.map(link =>
-          link.id === editingId ? { ...link, ...linkData } : link
-        ))
-      } else {
-        // Add new link
-        const newLink: Link = {
-          id: Date.now().toString(),
-          ...linkData
-        }
-        setCustomLinks([...customLinks, newLink])
+    if (editingId) {
+      // Update existing custom link
+      setCustomLinks(customLinks.map(link =>
+        link.id === editingId ? { ...link, ...linkData } : link
+      ))
+    } else {
+      // Add new link
+      const newLink: Link = {
+        id: Date.now().toString(),
+        ...linkData
       }
+      setCustomLinks([...customLinks, newLink])
     }
 
     setOpen(false)
@@ -150,21 +104,6 @@ export function GuidesDocsSection() {
   const handleDeleteLink = (linkId: string) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer ce lien ?")) {
       setCustomLinks(customLinks.filter(link => link.id !== linkId))
-    }
-  }
-
-  const handleDeleteDefaultLink = (linkKey: "googleDrive" | "notion" | "github") => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce lien ?")) {
-      setDefaultLinks({
-        ...defaultLinks,
-        [linkKey]: {
-          ...defaultLinks[linkKey],
-          url: "",
-          title: defaultLinks[linkKey].title,
-          description: defaultLinks[linkKey].description,
-          type: defaultLinks[linkKey].type
-        }
-      })
     }
   }
 
@@ -251,24 +190,36 @@ export function GuidesDocsSection() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h5 className="font-medium text-sm">{defaultLinks.googleDrive.title}</h5>
-                    <p className="text-xs text-muted-foreground">{defaultLinks.googleDrive.description}</p>
+                    <h5 className="font-medium text-sm">
+                      {config.googleDrive?.folderName || "Google Drive Folder"}
+                    </h5>
+                    <p className="text-xs text-muted-foreground">Main project documentation</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary">Drive</Badge>
-                    <Button size="sm" variant="outline" onClick={() => handleOpenEditDefault("googleDrive")}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleViewLink(defaultLinks.googleDrive.url || "Not configured")}>
-                      View
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDeleteDefaultLink("googleDrive")}>
-                      Delete
-                    </Button>
+                    {config.googleDrive?.folderId ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          window.open(
+                            `https://drive.google.com/drive/folders/${config.googleDrive?.folderId}`,
+                            "_blank"
+                          )
+                        }
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="outline" disabled>
+                        View
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div className="p-2 bg-muted/50 rounded text-xs font-mono text-muted-foreground">
-                  {defaultLinks.googleDrive.url || "Not configured"}
+                  {config.googleDrive?.folderId || "Not configured"}
                 </div>
               </div>
             </CardContent>
@@ -279,28 +230,36 @@ export function GuidesDocsSection() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h5 className="font-medium text-sm">{defaultLinks.notion.title}</h5>
-                    <p className="text-xs text-muted-foreground">{defaultLinks.notion.description}</p>
+                    <h5 className="font-medium text-sm">
+                      {config.notion?.databaseName || "Notion Database"}
+                    </h5>
+                    <p className="text-xs text-muted-foreground">Project tracking and tasks</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary">Notion</Badge>
-                    <Button size="sm" variant="outline" onClick={() => handleOpenEditDefault("notion")}>
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleViewLink(defaultLinks.notion.url || "Not configured")}
-                    >
-                      View
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDeleteDefaultLink("notion")}>
-                      Delete
-                    </Button>
+                    {config.notion?.databaseId ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          window.open(
+                            `https://notion.so/${config.notion?.databaseId.replace(/-/g, "")}`,
+                            "_blank"
+                          )
+                        }
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="outline" disabled>
+                        View
+                      </Button>
+                    )}
                   </div>
                 </div>
-                <div className="p-2 bg-muted/50 rounded text-xs font-mono text-muted-foreground">
-                  {defaultLinks.notion.url || "Not configured"}
+                <div className="p-2 bg-muted/50 rounded text-xs font-mono text-muted-foreground truncate">
+                  {config.notion?.databaseId || "Not configured"}
                 </div>
               </div>
             </CardContent>
@@ -311,24 +270,36 @@ export function GuidesDocsSection() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h5 className="font-medium text-sm">{defaultLinks.github.title}</h5>
-                    <p className="text-xs text-muted-foreground">{defaultLinks.github.description}</p>
+                    <h5 className="font-medium text-sm">GitHub Repository</h5>
+                    <p className="text-xs text-muted-foreground">Source code repository</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary">GitHub</Badge>
-                    <Button size="sm" variant="outline" onClick={() => handleOpenEditDefault("github")}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleViewLink(defaultLinks.github.url)}>
-                      View
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDeleteDefaultLink("github")}>
-                      Delete
-                    </Button>
+                    {config.github?.owner && config.github?.repo ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          window.open(
+                            `https://github.com/${config.github?.owner}/${config.github?.repo}`,
+                            "_blank"
+                          )
+                        }
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="outline" disabled>
+                        View
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div className="p-2 bg-muted/50 rounded text-xs font-mono text-muted-foreground">
-                  {defaultLinks.github.url}
+                  {config.github?.owner && config.github?.repo
+                    ? `${config.github.owner}/${config.github.repo}`
+                    : "Not configured"}
                 </div>
               </div>
             </CardContent>
@@ -404,6 +375,7 @@ export function GuidesDocsSection() {
       description="Important links and references for project resources"
       icon="📚"
       detailedContent={detailedContent}
+      defaultOpen={true}
     />
   )
 }

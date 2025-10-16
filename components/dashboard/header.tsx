@@ -3,6 +3,7 @@
 import { signOut, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { ProjectSettingsDialog } from "@/components/settings/project-settings-dialog"
 
 export function DashboardHeader() {
   const { data: session } = useSession()
@@ -21,6 +22,7 @@ export function DashboardHeader() {
             <div className="text-sm text-muted-foreground">
               Connected: {session?.provider === "google" ? "Google" : "GitHub"}
             </div>
+            <ProjectSettingsDialog />
             <Button onClick={() => signOut()} variant="outline">
               Sign Out
             </Button>
