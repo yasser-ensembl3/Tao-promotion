@@ -31,18 +31,36 @@ export function ProjectSettingsDialog() {
   })
 
   const handleSave = () => {
-    updateConfig({
+    const updates: any = {
       projectName: formData.projectName,
-      github: formData.githubOwner && formData.githubRepo
-        ? { owner: formData.githubOwner, repo: formData.githubRepo }
-        : undefined,
-      googleDrive: formData.driveFolderId
-        ? { folderId: formData.driveFolderId, folderName: formData.driveFolderName }
-        : undefined,
-      notion: formData.notionDatabaseId
-        ? { databaseId: formData.notionDatabaseId, databaseName: formData.notionDatabaseName }
-        : undefined,
-    })
+    }
+
+    // Only include properties if they have values
+    if (formData.githubOwner?.trim() && formData.githubRepo?.trim()) {
+      updates.github = { owner: formData.githubOwner.trim(), repo: formData.githubRepo.trim() }
+    } else {
+      updates.github = { owner: "", repo: "" }
+    }
+
+    if (formData.driveFolderId?.trim()) {
+      updates.googleDrive = {
+        folderId: formData.driveFolderId.trim(),
+        folderName: formData.driveFolderName?.trim() || ""
+      }
+    } else {
+      updates.googleDrive = { folderId: "", folderName: "" }
+    }
+
+    if (formData.notionDatabaseId?.trim()) {
+      updates.notion = {
+        databaseId: formData.notionDatabaseId.trim(),
+        databaseName: formData.notionDatabaseName?.trim() || ""
+      }
+    } else {
+      updates.notion = { databaseId: "", databaseName: "" }
+    }
+
+    updateConfig(updates)
     setIsOpen(false)
   }
 
@@ -156,29 +174,89 @@ export function ProjectSettingsDialog() {
           {/* Notion Configuration */}
           <div className="space-y-3">
             <div>
-              <h4 className="font-semibold text-sm mb-2">Notion Database</h4>
+              <h4 className="font-semibold text-sm mb-2">Notion Databases</h4>
               <p className="text-xs text-muted-foreground mb-3">
-                Connect a Notion database for tasks and project tracking. Find the database ID in the URL or use the database ID from your .env file
+                {config.notionDatabases ?
+                  "Databases created automatically for this project" :
+                  "Connect a Notion database for tasks and project tracking. Find the database ID in the URL or use the database ID from your .env file"}
               </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="notionDatabaseId">Database ID</Label>
-              <Input
-                id="notionDatabaseId"
-                placeholder="28c58fe731b18014b9b4f0a6e0b6a576"
-                value={formData.notionDatabaseId}
-                onChange={(e) => setFormData({ ...formData, notionDatabaseId: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notionDatabaseName">Database Name (optional)</Label>
-              <Input
-                id="notionDatabaseName"
-                placeholder="Project Tasks"
-                value={formData.notionDatabaseName}
-                onChange={(e) => setFormData({ ...formData, notionDatabaseName: e.target.value })}
-              />
-            </div>
+
+            {config.notionDatabases ? (
+              <div className="space-y-2 p-4 border rounded-lg bg-muted/50">
+                <p className="text-xs font-semibold mb-2">Auto-generated Databases:</p>
+                {config.notionDatabases.tasks && (
+                  <div className="text-xs">
+                    <span className="font-medium">Tasks:</span>
+                    <code className="ml-2 text-[10px] bg-background px-1 py-0.5 rounded">{config.notionDatabases.tasks}</code>
+                  </div>
+                )}
+                {config.notionDatabases.goals && (
+                  <div className="text-xs">
+                    <span className="font-medium">Goals:</span>
+                    <code className="ml-2 text-[10px] bg-background px-1 py-0.5 rounded">{config.notionDatabases.goals}</code>
+                  </div>
+                )}
+                {config.notionDatabases.milestones && (
+                  <div className="text-xs">
+                    <span className="font-medium">Milestones:</span>
+                    <code className="ml-2 text-[10px] bg-background px-1 py-0.5 rounded">{config.notionDatabases.milestones}</code>
+                  </div>
+                )}
+                {config.notionDatabases.documents && (
+                  <div className="text-xs">
+                    <span className="font-medium">Documents:</span>
+                    <code className="ml-2 text-[10px] bg-background px-1 py-0.5 rounded">{config.notionDatabases.documents}</code>
+                  </div>
+                )}
+                {config.notionDatabases.feedback && (
+                  <div className="text-xs">
+                    <span className="font-medium">Feedback:</span>
+                    <code className="ml-2 text-[10px] bg-background px-1 py-0.5 rounded">{config.notionDatabases.feedback}</code>
+                  </div>
+                )}
+                {config.notionDatabases.metrics && (
+                  <div className="text-xs">
+                    <span className="font-medium">Metrics:</span>
+                    <code className="ml-2 text-[10px] bg-background px-1 py-0.5 rounded">{config.notionDatabases.metrics}</code>
+                  </div>
+                )}
+                {config.projectPageId && (
+                  <div className="text-xs mt-3 pt-3 border-t">
+                    <span className="font-medium">Project Page:</span>
+                    <a
+                      href={`https://notion.so/${config.projectPageId.replace(/-/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 text-blue-500 hover:underline"
+                    >
+                      Open in Notion
+                    </a>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="notionDatabaseId">Database ID</Label>
+                  <Input
+                    id="notionDatabaseId"
+                    placeholder="28c58fe731b18014b9b4f0a6e0b6a576"
+                    value={formData.notionDatabaseId}
+                    onChange={(e) => setFormData({ ...formData, notionDatabaseId: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notionDatabaseName">Database Name (optional)</Label>
+                  <Input
+                    id="notionDatabaseName"
+                    placeholder="Project Tasks"
+                    value={formData.notionDatabaseName}
+                    onChange={(e) => setFormData({ ...formData, notionDatabaseName: e.target.value })}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
 
