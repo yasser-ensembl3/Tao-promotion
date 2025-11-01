@@ -209,6 +209,7 @@ export function MetricsSection() {
     if (config.notionDatabases) {
       fetchAllMetrics()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.notionDatabases?.tasks, config.notionDatabases?.goals, config.notionDatabases?.milestones, config.notionDatabases?.documents, config.notionDatabases?.sales])
 
   // Custom Metrics Management
@@ -628,7 +629,7 @@ export function MetricsSection() {
                     No custom metrics yet
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Click "Add Metric" to create your first custom metric
+                    Click &ldquo;Add Metric&rdquo; to create your first custom metric
                   </p>
                 </div>
               )
