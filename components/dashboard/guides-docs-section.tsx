@@ -598,24 +598,25 @@ export function GuidesDocsSection() {
             </DialogContent>
           </Dialog>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {config.googleDrive?.folderId && config.googleDrive.folderId.trim() !== "" && (
             <Card>
-              <CardContent className="p-4">
-                <div className="space-y-3">
+              <CardContent className="p-2.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h5 className="font-medium text-sm">
+                      <h5 className="font-medium text-xs">
                         {config.googleDrive?.folderName || "Google Drive Folder"}
                       </h5>
-                      <p className="text-xs text-muted-foreground">Main project documentation</p>
+                      <p className="text-[10px] text-muted-foreground">Main project documentation</p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary">Drive</Badge>
+                    <div className="flex items-center space-x-1">
+                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Drive</Badge>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleEditConfigLink("drive")}
+                        className="h-6 px-2 text-[10px]"
                       >
                         Edit
                       </Button>
@@ -628,20 +629,22 @@ export function GuidesDocsSection() {
                             "_blank"
                           )
                         }
+                        className="h-6 px-2 text-[10px]"
                       >
-                        <ExternalLink className="h-3 w-3 mr-1" />
+                        <ExternalLink className="h-2.5 w-2.5 mr-0.5" />
                         View
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => handleDeleteConfigLink("drive")}
+                        className="h-6 px-2 text-[10px]"
                       >
                         Delete
                       </Button>
                     </div>
                   </div>
-                  <div className="p-2 bg-muted/50 rounded text-xs font-mono text-muted-foreground">
+                  <div className="p-1.5 bg-muted/50 rounded text-[10px] font-mono text-muted-foreground">
                     {config.googleDrive?.folderId}
                   </div>
                 </div>
@@ -651,21 +654,22 @@ export function GuidesDocsSection() {
 
           {config.notion?.databaseId && config.notion.databaseId.trim() !== "" && (
             <Card>
-              <CardContent className="p-4">
-                <div className="space-y-3">
+              <CardContent className="p-2.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h5 className="font-medium text-sm">
+                      <h5 className="font-medium text-xs">
                         {config.notion?.databaseName || "Notion Database"}
                       </h5>
-                      <p className="text-xs text-muted-foreground">Project tracking and tasks</p>
+                      <p className="text-[10px] text-muted-foreground">Project tracking and tasks</p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary">Notion</Badge>
+                    <div className="flex items-center space-x-1">
+                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Notion</Badge>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleEditConfigLink("notion")}
+                        className="h-6 px-2 text-[10px]"
                       >
                         Edit
                       </Button>
@@ -678,20 +682,22 @@ export function GuidesDocsSection() {
                             "_blank"
                           )
                         }
+                        className="h-6 px-2 text-[10px]"
                       >
-                        <ExternalLink className="h-3 w-3 mr-1" />
+                        <ExternalLink className="h-2.5 w-2.5 mr-0.5" />
                         View
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => handleDeleteConfigLink("notion")}
+                        className="h-6 px-2 text-[10px]"
                       >
                         Delete
                       </Button>
                     </div>
                   </div>
-                  <div className="p-2 bg-muted/50 rounded text-xs font-mono text-muted-foreground truncate">
+                  <div className="p-1.5 bg-muted/50 rounded text-[10px] font-mono text-muted-foreground truncate">
                     {config.notion?.databaseId}
                   </div>
                 </div>
@@ -701,15 +707,15 @@ export function GuidesDocsSection() {
 
           {config.projectPageId && (
             <Card>
-              <CardContent className="p-4">
-                <div className="space-y-3">
+              <CardContent className="p-2.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h5 className="font-medium text-sm">Project Page</h5>
-                      <p className="text-xs text-muted-foreground">Main project Notion page</p>
+                      <h5 className="font-medium text-xs">Project Page</h5>
+                      <p className="text-[10px] text-muted-foreground">Main project Notion page</p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary">Notion</Badge>
+                    <div className="flex items-center space-x-1">
+                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Notion</Badge>
                       <Button
                         size="sm"
                         variant="outline"
@@ -719,13 +725,14 @@ export function GuidesDocsSection() {
                             "_blank"
                           )
                         }
+                        className="h-6 px-2 text-[10px]"
                       >
-                        <ExternalLink className="h-3 w-3 mr-1" />
+                        <ExternalLink className="h-2.5 w-2.5 mr-0.5" />
                         View
                       </Button>
                     </div>
                   </div>
-                  <div className="p-2 bg-muted/50 rounded text-xs font-mono text-muted-foreground truncate">
+                  <div className="p-1.5 bg-muted/50 rounded text-[10px] font-mono text-muted-foreground truncate">
                     {config.projectPageId}
                   </div>
                 </div>
@@ -735,19 +742,20 @@ export function GuidesDocsSection() {
 
           {config.github?.owner && config.github.owner.trim() !== "" && config.github?.repo && config.github.repo.trim() !== "" && (
             <Card>
-              <CardContent className="p-4">
-                <div className="space-y-3">
+              <CardContent className="p-2.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h5 className="font-medium text-sm">GitHub Repository</h5>
-                      <p className="text-xs text-muted-foreground">Source code repository</p>
+                      <h5 className="font-medium text-xs">GitHub Repository</h5>
+                      <p className="text-[10px] text-muted-foreground">Source code repository</p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary">GitHub</Badge>
+                    <div className="flex items-center space-x-1">
+                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">GitHub</Badge>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleEditConfigLink("github")}
+                        className="h-6 px-2 text-[10px]"
                       >
                         Edit
                       </Button>
@@ -760,20 +768,22 @@ export function GuidesDocsSection() {
                             "_blank"
                           )
                         }
+                        className="h-6 px-2 text-[10px]"
                       >
-                        <ExternalLink className="h-3 w-3 mr-1" />
+                        <ExternalLink className="h-2.5 w-2.5 mr-0.5" />
                         View
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => handleDeleteConfigLink("github")}
+                        className="h-6 px-2 text-[10px]"
                       >
                         Delete
                       </Button>
                     </div>
                   </div>
-                  <div className="p-2 bg-muted/50 rounded text-xs font-mono text-muted-foreground">
+                  <div className="p-1.5 bg-muted/50 rounded text-[10px] font-mono text-muted-foreground">
                     {config.github.owner}/{config.github.repo}
                   </div>
                 </div>
@@ -783,27 +793,27 @@ export function GuidesDocsSection() {
 
           {customLinks.map((link) => (
             <Card key={link.id}>
-              <CardContent className="p-4">
-                <div className="space-y-3">
+              <CardContent className="p-2.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h5 className="font-medium text-sm">{link.title}</h5>
-                      <p className="text-xs text-muted-foreground">{link.description}</p>
+                      <h5 className="font-medium text-xs">{link.title}</h5>
+                      <p className="text-[10px] text-muted-foreground">{link.description}</p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary">{link.type}</Badge>
-                      <Button size="sm" variant="outline" onClick={() => handleOpenEdit(link)}>
+                    <div className="flex items-center space-x-1">
+                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{link.type}</Badge>
+                      <Button size="sm" variant="outline" onClick={() => handleOpenEdit(link)} className="h-6 px-2 text-[10px]">
                         Edit
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleViewLink(link.url)}>
+                      <Button size="sm" variant="outline" onClick={() => handleViewLink(link.url)} className="h-6 px-2 text-[10px]">
                         View
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDeleteLink(link.id)}>
+                      <Button size="sm" variant="destructive" onClick={() => handleDeleteLink(link.id)} className="h-6 px-2 text-[10px]">
                         Delete
                       </Button>
                     </div>
                   </div>
-                  <div className="p-2 bg-muted/50 rounded text-xs font-mono text-muted-foreground break-all">
+                  <div className="p-1.5 bg-muted/50 rounded text-[10px] font-mono text-muted-foreground break-all">
                     {link.url}
                   </div>
                 </div>

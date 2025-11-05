@@ -52,11 +52,11 @@ export function MainDashboard() {
       <div className="container mx-auto py-6 space-y-6">
         <DashboardHeader />
         <div className="space-y-6">
-          <OverviewSection />
-          <GuidesDocsSection />
-          <ProjectTrackingSection />
-          <GoalsMetricsSection />
           <MetricsSection />
+          <GuidesDocsSection />
+          <GoalsMetricsSection />
+          <OverviewSection />
+          <ProjectTrackingSection />
           <ReportsSection />
           <UserFeedbackSection />
         </div>

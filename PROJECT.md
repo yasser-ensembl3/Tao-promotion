@@ -278,7 +278,7 @@ export async function GET(request: NextRequest) {
 
 ### 1. Project Configuration System
 
-MiniVault uses a **localStorage-based configuration system** to store user preferences and project settings.
+MiniVault uses a **Notion-first configuration system** with minimal localStorage usage for project settings.
 
 #### Configuration Context (`contexts/project-config-context.tsx`)
 
@@ -307,10 +307,11 @@ interface ProjectConfig {
 
 **How it works:**
 
-1. **Initial Load**: Context reads from `localStorage` key `minivault_project_config`
-2. **Updates**: `updateConfig()` merges new values and saves to localStorage
-3. **Persistence**: All changes are immediately persisted across browser sessions
-4. **Usage**: Any component can access via `useProjectConfig()` hook
+1. **Initial Load**: On app load, user selects a project from Notion
+2. **Database IDs**: All database IDs are loaded from Notion via `/api/notion/project-databases`
+3. **localStorage Usage**: Only stores the last selected project ID (`minivault_last_project_id`)
+4. **In-Memory State**: Configuration is kept in React Context (not persisted)
+5. **Usage**: Any component can access via `useProjectConfig()` hook
 
 ```typescript
 const { config, updateConfig, isLoaded } = useProjectConfig()
@@ -324,17 +325,30 @@ updateConfig({
 const tasksDbId = config.notionDatabases?.tasks
 ```
 
-### 2. Dual Storage Pattern (localStorage + Notion)
+### 2. Notion-Only Pattern
 
-Many sections support both **local-only mode** and **Notion-synced mode**:
+All sections are **Notion-backed only**. There is no local-only fallback mode:
 
 #### Example: User Feedback Section
 
 ```typescript
 const handleSave = async () => {
-  // Check if Notion is configured
-  if (config.notionDatabases?.feedback) {
-    // NOTION MODE: Create in Notion via API
+  if (!config.notionDatabases?.feedback) {
+    alert("Feedback database not configured in Project Settings")
+    return
+  }
+
+  if (editingId) {
+    // UPDATE: Patch existing entry in Notion
+    const response = await fetch('/api/notion/feedback', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        pageId: editingId,
+        ...formData
+      })
+    })
+  } else {
+    // CREATE: Create new entry in Notion
     const response = await fetch('/api/notion/feedback', {
       method: 'POST',
       body: JSON.stringify({
@@ -342,27 +356,30 @@ const handleSave = async () => {
         ...formData
       })
     })
+  }
 
-    if (response.ok) {
-      // Refresh from Notion
-      await fetchFeedbacks()
-    }
-  } else {
-    // LOCAL MODE: Store in localStorage via context
-    const newFeedback = {
-      id: Date.now().toString(),
-      ...formData
-    }
-    // This would be stored in config.customFeedback array
-    setFeedbacks([...feedbacks, newFeedback])
+  if (response.ok) {
+    await fetchFeedbacks() // Refresh from Notion
+  }
+}
+
+const handleDelete = async (feedbackId: string) => {
+  // DELETE: Archive entry in Notion
+  const response = await fetch(`/api/notion/feedback?pageId=${feedbackId}`, {
+    method: 'DELETE'
+  })
+
+  if (response.ok) {
+    await fetchFeedbacks() // Refresh from Notion
   }
 }
 ```
 
 **Why this pattern?**
-- Users can start using the app immediately (no setup required)
-- When they connect Notion, data can be synced
-- Provides resilience if Notion API is unavailable
+- All data lives in Notion (single source of truth)
+- Full CRUD operations (Create, Read, Update, Delete)
+- Bidirectional sync: changes in app reflect in Notion instantly
+- No data duplication or sync conflicts
 
 ### 3. Data Fetching Pattern
 
@@ -812,6 +829,17 @@ export async function POST(request: NextRequest) {
     "userName": "John Doe"
   }
   ```
+- `PATCH /api/notion/feedback` - Update existing feedback
+  ```json
+  {
+    "pageId": "page-id-xxx",
+    "title": "Updated title",
+    "date": "2024-01-16",
+    "feedback": "Updated feedback text",
+    "userName": "John Doe"
+  }
+  ```
+- `DELETE /api/notion/feedback?pageId=xxx` - Archive (soft delete) feedback
 
 #### Notion - Custom Metrics
 - `GET /api/notion/custom-metrics?databaseId=xxx` - Fetch custom metrics
@@ -1676,17 +1704,19 @@ Properties:
 - Date (date) - When received
 - Feedback (rich_text) - Feedback content
 - User Name (rich_text) - Who gave feedback
+
+Supported Operations: Full CRUD (Create, Read, Update, Delete/Archive)
 ```
 
-#### Custom Metrics Database
+#### Metrics Database
 ```
 Properties:
-- Name (title) - Metric name
-- Value (rich_text) - Metric value (can be number or string)
-- Date (date) - When recorded
-- Description (rich_text) - What it measures
-- Color (select) - Blue, Green, Purple, Orange, Red, Yellow
-- Icon (rich_text) - Emoji icon
+- Metric Name (title) - Type of metric (normalized: lowercase, no accents, no special chars)
+- Number (number OR multi_select OR rich_text) - Metric value (auto-detected)
+- Last Updated (date) - When recorded
+
+Note: The API automatically detects property types and adapts.
+Example metric types: "number of sales", "number of subscribers", "monthly revenue"
 ```
 
 #### Sales Database

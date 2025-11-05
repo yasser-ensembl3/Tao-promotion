@@ -30,15 +30,6 @@ export interface ProjectConfig {
     description?: string
     category?: string
   }[]
-  customMetrics?: {
-    id: string
-    name: string
-    value: number | string
-    date: string  // ISO date string
-    description?: string
-    color?: string
-    icon?: string
-  }[]
   weeklyReports?: {
     id: string
     date: string  // ISO date string

@@ -160,29 +160,45 @@ export function ProjectTrackingSection() {
     }
   }
 
-  const toDoCount = tasks.filter(t => t.status === "To Do").length
-  const inProgressCount = tasks.filter(t => t.status === "In Progress").length
-  const reviewNeededCount = tasks.filter(t => t.status === "Review").length
-  const completedCount = tasks.filter(t => t.status === "Done" || t.status === "Completed").length
+  // Get in-progress tasks for quick view
+  const inProgressTasks = tasks.filter(t => t.status === "In Progress")
 
-  const keyMetrics = (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div className="text-center p-3 rounded-lg bg-slate-50 border border-slate-200">
-        <div className="text-2xl font-bold text-slate-700">{toDoCount}</div>
-        <div className="text-sm text-slate-600">To Do</div>
+  const keyMetrics = inProgressTasks.length > 0 ? (
+    <div className="space-y-2">
+      <div className="text-xs font-medium text-muted-foreground mb-2">
+        {inProgressTasks.length} task{inProgressTasks.length !== 1 ? 's' : ''} in progress
       </div>
-      <div className="text-center p-3 rounded-lg bg-blue-50 border border-blue-200">
-        <div className="text-2xl font-bold text-blue-700">{inProgressCount}</div>
-        <div className="text-sm text-blue-600">In Progress</div>
-      </div>
-      <div className="text-center p-3 rounded-lg bg-purple-50 border border-purple-200">
-        <div className="text-2xl font-bold text-purple-700">{reviewNeededCount}</div>
-        <div className="text-sm text-purple-600">Review</div>
-      </div>
-      <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200">
-        <div className="text-2xl font-bold text-green-700">{completedCount}</div>
-        <div className="text-sm text-green-600">Completed</div>
-      </div>
+      {inProgressTasks.slice(0, 5).map((task) => (
+        <div key={task.id} className="p-2 rounded-lg bg-blue-50 border border-blue-200">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-xs text-blue-900 truncate">{task.title}</div>
+              <div className="flex gap-2 mt-1">
+                {task.assignee && (
+                  <span className="text-[10px] text-blue-600">👤 {task.assignee}</span>
+                )}
+                {task.dueDate && (
+                  <span className="text-[10px] text-blue-600">📅 {new Date(task.dueDate).toLocaleDateString()}</span>
+                )}
+              </div>
+            </div>
+            {task.priority && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded ${getPriorityColor(task.priority)}`}>
+                {task.priority}
+              </span>
+            )}
+          </div>
+        </div>
+      ))}
+      {inProgressTasks.length > 5 && (
+        <div className="text-[10px] text-muted-foreground text-center">
+          +{inProgressTasks.length - 5} more
+        </div>
+      )}
+    </div>
+  ) : (
+    <div className="text-center p-4 rounded-lg bg-muted/50 border border-dashed">
+      <p className="text-xs text-muted-foreground">No tasks in progress</p>
     </div>
   )
 
@@ -433,6 +449,7 @@ export function ProjectTrackingSection() {
       icon="📋"
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
+      defaultOpen={true}
     />
   )
 }

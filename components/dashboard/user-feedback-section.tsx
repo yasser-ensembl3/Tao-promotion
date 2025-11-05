@@ -84,57 +84,94 @@ export function UserFeedbackSection() {
       return
     }
 
-    // If Notion is configured, create in Notion
-    if (config.notionDatabases?.feedback) {
-      try {
-        setLoading(true)
-        const response = await fetch('/api/notion/feedback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+    if (!config.notionDatabases?.feedback) {
+      alert("Feedback database not configured in Project Settings")
+      return
+    }
+
+    setLoading(true)
+    try {
+      if (editingId) {
+        // Update existing feedback
+        const response = await fetch("/api/notion/feedback", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            databaseId: config.notionDatabases.feedback,
-            ...formData
-          })
+            pageId: editingId,
+            title: formData.title,
+            date: formData.date,
+            feedback: formData.feedback,
+            userName: formData.userName,
+          }),
         })
 
         if (response.ok) {
-          // Refresh feedbacks from Notion
-          await fetchFeedbacks()
           setOpen(false)
           setFormData({ title: "", date: new Date().toISOString().split('T')[0], feedback: "", userName: "" })
           setEditingId(null)
+          await fetchFeedbacks()
         } else {
-          alert("Failed to create feedback in Notion")
+          const errorData = await response.json()
+          alert(`Failed to update feedback: ${errorData.error}`)
         }
-      } catch (error) {
-        console.error("Error creating feedback:", error)
-        alert("Error creating feedback")
-      } finally {
-        setLoading(false)
-      }
-    } else {
-      // Local only mode (no Notion configured)
-      if (editingId) {
-        setFeedbacks(feedbacks.map(feedback =>
-          feedback.id === editingId ? { ...feedback, ...formData } : feedback
-        ))
       } else {
-        const newFeedback: Feedback = {
-          id: Date.now().toString(),
-          ...formData
-        }
-        setFeedbacks([...feedbacks, newFeedback])
-      }
+        // Create new feedback
+        const response = await fetch("/api/notion/feedback", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            databaseId: config.notionDatabases.feedback,
+            title: formData.title,
+            date: formData.date,
+            feedback: formData.feedback,
+            userName: formData.userName,
+          }),
+        })
 
-      setOpen(false)
-      setFormData({ title: "", date: new Date().toISOString().split('T')[0], feedback: "", userName: "" })
-      setEditingId(null)
+        if (response.ok) {
+          setOpen(false)
+          setFormData({ title: "", date: new Date().toISOString().split('T')[0], feedback: "", userName: "" })
+          setEditingId(null)
+          await fetchFeedbacks()
+        } else {
+          const errorData = await response.json()
+          alert(`Failed to create feedback: ${errorData.error}`)
+        }
+      }
+    } catch (error: any) {
+      console.error("Error saving feedback:", error)
+      alert(`Error saving feedback: ${error.message}`)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleDelete = (feedbackId: string) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce feedback ?")) {
-      setFeedbacks(feedbacks.filter(feedback => feedback.id !== feedbackId))
+  const handleDelete = async (feedbackId: string) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce feedback ?")) {
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/notion/feedback?pageId=${feedbackId}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        await fetchFeedbacks()
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to delete feedback: ${errorData.error}`)
+      }
+    } catch (error: any) {
+      console.error("Error deleting feedback:", error)
+      alert(`Error deleting feedback: ${error.message}`)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -183,22 +220,25 @@ export function UserFeedbackSection() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {config.notionDatabases?.feedback && (
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  fetchFeedbacks()
-                }}
-                disabled={loading}
-              >
-                {loading ? "Refreshing..." : "Refresh"}
-              </Button>
-            )}
-            <Button size="sm" onClick={(e) => {
-              e.stopPropagation()
-              handleOpenAdd()
-            }}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation()
+                fetchFeedbacks()
+              }}
+              disabled={loading || !config.notionDatabases?.feedback}
+            >
+              {loading ? "Refreshing..." : "Refresh"}
+            </Button>
+            <Button
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleOpenAdd()
+              }}
+              disabled={!config.notionDatabases?.feedback}
+            >
               Add Feedback
             </Button>
             {detailsOpen ? (
@@ -211,15 +251,13 @@ export function UserFeedbackSection() {
 
         {detailsOpen && (
           <div className="p-4 pt-0 space-y-4">
-            {!config.notionDatabases?.feedback && (
-              <div className="p-4 border border-dashed rounded-lg bg-muted/30 mb-4">
+            {!config.notionDatabases?.feedback ? (
+              <div className="p-8 border rounded-lg text-center border-dashed bg-muted/30">
                 <p className="text-sm text-muted-foreground">
-                  Configure your Notion Feedback database in Project Settings to sync with Notion.
+                  Feedback database not configured. Configure it in Project Settings.
                 </p>
               </div>
-            )}
-
-            {feedbacks.length === 0 ? (
+            ) : feedbacks.length === 0 ? (
               <div className="p-8 border rounded-lg text-center border-dashed">
                 <p className="text-sm text-muted-foreground">
                   No feedback recorded yet. Add feedback items to track user responses.

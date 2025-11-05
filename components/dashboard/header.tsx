@@ -34,6 +34,8 @@ interface NotionProject {
   }
 }
 
+const LAST_PROJECT_KEY = "minivault_last_project_id"
+
 export function DashboardHeader() {
   const { data: session } = useSession()
   const { config, updateConfig } = useProjectConfig()
@@ -57,24 +59,40 @@ export function DashboardHeader() {
         const data = await response.json()
         setProjects(data.projects)
 
-        // Sélectionner le premier projet par défaut si aucun n'est sélectionné
+        // Restaurer le dernier projet sélectionné ou sélectionner le premier par défaut
         if (data.projects.length > 0 && !selectedProject) {
-          const firstProject = data.projects[0]
-          setSelectedProject(firstProject.id)
+          let projectToLoad = null
 
-          // Charger les databases du premier projet
+          // Essayer de restaurer le dernier projet depuis localStorage
           try {
-            const dbResponse = await fetch(`/api/notion/project-databases?projectPageId=${firstProject.id}`)
+            const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY)
+            if (lastProjectId) {
+              projectToLoad = data.projects.find((p: NotionProject) => p.id === lastProjectId)
+            }
+          } catch (error) {
+            console.error("Error loading last project from localStorage:", error)
+          }
+
+          // Si pas de dernier projet ou projet introuvable, prendre le premier
+          if (!projectToLoad) {
+            projectToLoad = data.projects[0]
+          }
+
+          setSelectedProject(projectToLoad.id)
+
+          // Charger les databases du projet
+          try {
+            const dbResponse = await fetch(`/api/notion/project-databases?projectPageId=${projectToLoad.id}`)
             if (dbResponse.ok) {
               const dbData = await dbResponse.json()
               updateConfig({
-                projectName: firstProject.properties.Name || "Projet sans nom",
-                projectPageId: firstProject.id,
+                projectName: projectToLoad.properties.Name || "Projet sans nom",
+                projectPageId: projectToLoad.id,
                 notionDatabases: dbData.databases,
               })
             }
           } catch (error) {
-            console.error("Error loading first project databases:", error)
+            console.error("Error loading project databases:", error)
           }
         }
       }
@@ -90,6 +108,13 @@ export function DashboardHeader() {
       setIsNewProjectDialogOpen(true)
     } else {
       setSelectedProject(value)
+
+      // Sauvegarder le dernier projet sélectionné dans localStorage
+      try {
+        localStorage.setItem(LAST_PROJECT_KEY, value)
+      } catch (error) {
+        console.error("Error saving last project to localStorage:", error)
+      }
 
       // Mettre à jour le config avec le nom du projet sélectionné
       const project = projects.find(p => p.id === value)
@@ -149,6 +174,13 @@ export function DashboardHeader() {
 
         // Sélectionner le nouveau projet
         setSelectedProject(data.project.id)
+
+        // Sauvegarder le nouveau projet dans localStorage
+        try {
+          localStorage.setItem(LAST_PROJECT_KEY, data.project.projectPageId)
+        } catch (error) {
+          console.error("Error saving last project to localStorage:", error)
+        }
 
         // Mettre à jour le config avec le nom du projet et les databases créées
         updateConfig({
