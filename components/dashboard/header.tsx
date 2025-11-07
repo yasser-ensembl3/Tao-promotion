@@ -201,11 +201,11 @@ export function DashboardHeader() {
   return (
     <>
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">MiniVault Dashboard</h1>
-              <p className="text-muted-foreground mt-1">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+            <div className="w-full sm:w-auto">
+              <h1 className="text-2xl sm:text-3xl font-bold">MiniVault Dashboard</h1>
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
                 Welcome back, {session?.user?.name || "User"}
               </p>
               <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
@@ -219,9 +219,9 @@ export function DashboardHeader() {
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Select value={selectedProject} onValueChange={handleProjectChange}>
-                <SelectTrigger className="w-[250px]">
+                <SelectTrigger className="w-full sm:w-[250px]">
                   <SelectValue placeholder="Sélectionner un projet" />
                 </SelectTrigger>
                 <SelectContent>
@@ -238,6 +238,7 @@ export function DashboardHeader() {
                 size="icon"
                 onClick={fetchProjects}
                 disabled={isRefreshing}
+                className="flex-shrink-0"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
               </Button>

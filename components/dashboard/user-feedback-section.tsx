@@ -313,6 +313,86 @@ export function UserFeedbackSection() {
     </div>
   )
 
+  // Don't show full section if no feedbacks
+  if (feedbacks.length === 0) {
+    return (
+      <>
+        <div className="border rounded-lg p-4 bg-muted/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">💬</span>
+              <div>
+                <h3 className="font-semibold text-sm">User Feedback</h3>
+                <p className="text-xs text-muted-foreground">Track and manage user feedback</p>
+              </div>
+            </div>
+            <Button size="sm" onClick={handleOpenAdd} disabled={!config.notionDatabases?.feedback}>
+              Add Feedback
+            </Button>
+          </div>
+        </div>
+
+        {/* Add/Edit Feedback Dialog */}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="sm:max-w-[525px]">
+            <DialogHeader>
+              <DialogTitle>{editingId ? "Edit Feedback" : "Add New Feedback"}</DialogTitle>
+              <DialogDescription>
+                {editingId ? "Update feedback information below." : "Add new user feedback to track."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  placeholder="e.g., Feature request for dark mode"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="date">Date *</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="feedback">Feedback *</Label>
+                <Input
+                  id="feedback"
+                  placeholder="Describe the feedback..."
+                  value={formData.feedback}
+                  onChange={(e) => setFormData({ ...formData, feedback: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="userName">User Name *</Label>
+                <Input
+                  id="userName"
+                  placeholder="e.g., John Doe"
+                  value={formData.userName}
+                  onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="button" onClick={handleSave} disabled={loading}>
+                {loading ? "Saving..." : (editingId ? "Save Changes" : "Add Feedback")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
+    )
+  }
+
   return (
     <>
       <DashboardSection

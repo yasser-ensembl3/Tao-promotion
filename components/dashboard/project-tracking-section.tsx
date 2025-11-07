@@ -444,7 +444,7 @@ export function ProjectTrackingSection() {
 
   return (
     <DashboardSection
-      title="Project Tracking"
+      title="Projects & Tasks"
       description="Monitor tasks and sub-projects from Notion with filters and tags"
       icon="📋"
       keyMetrics={keyMetrics}

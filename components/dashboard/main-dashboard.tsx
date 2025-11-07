@@ -49,12 +49,12 @@ export function MainDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="container mx-auto py-3 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-6">
         <DashboardHeader />
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
+          <GoalsMetricsSection />
           <MetricsSection />
           <GuidesDocsSection />
-          <GoalsMetricsSection />
           <OverviewSection />
           <ProjectTrackingSection />
           <ReportsSection />

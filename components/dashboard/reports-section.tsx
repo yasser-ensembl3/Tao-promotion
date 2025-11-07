@@ -217,6 +217,31 @@ export function ReportsSection() {
     </div>
   )
 
+  // Don't show full section if no reports
+  if (reports.length === 0) {
+    return (
+      <div className="border rounded-lg p-4 bg-muted/20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📊</span>
+            <div>
+              <h3 className="font-semibold text-sm">Weekly Reports</h3>
+              <p className="text-xs text-muted-foreground">Generate AI-powered project summaries</p>
+            </div>
+          </div>
+          <Button size="sm" onClick={generateReport} disabled={generating || !config.notionDatabases?.tasks}>
+            {generating ? "Generating..." : "Generate Report"}
+          </Button>
+        </div>
+        {error && (
+          <div className="mt-3 p-3 border border-red-500 rounded-lg bg-red-500/10">
+            <p className="text-xs text-red-500">{error}</p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <DashboardSection
       title="Weekly Reports"

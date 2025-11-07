@@ -598,54 +598,42 @@ export function GuidesDocsSection() {
             </DialogContent>
           </Dialog>
         </div>
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {config.googleDrive?.folderId && config.googleDrive.folderId.trim() !== "" && (
-            <Card>
-              <CardContent className="p-2.5">
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-3">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h5 className="font-medium text-xs">
-                        {config.googleDrive?.folderName || "Google Drive Folder"}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">Drive</Badge>
+                      <h5 className="font-semibold text-xs truncate">
+                        {config.googleDrive?.folderName || "Google Drive"}
                       </h5>
-                      <p className="text-[10px] text-muted-foreground">Main project documentation</p>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Drive</Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditConfigLink("drive")}
-                        className="h-6 px-2 text-[10px]"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          window.open(
-                            `https://drive.google.com/drive/folders/${config.googleDrive?.folderId}`,
-                            "_blank"
-                          )
-                        }
-                        className="h-6 px-2 text-[10px]"
-                      >
-                        <ExternalLink className="h-2.5 w-2.5 mr-0.5" />
-                        View
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDeleteConfigLink("drive")}
-                        className="h-6 px-2 text-[10px]"
-                      >
-                        Delete
-                      </Button>
+                      <p className="text-[10px] text-muted-foreground line-clamp-2">Main project documentation</p>
                     </div>
                   </div>
-                  <div className="p-1.5 bg-muted/50 rounded text-[10px] font-mono text-muted-foreground">
-                    {config.googleDrive?.folderId}
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        window.open(
+                          `https://drive.google.com/drive/folders/${config.googleDrive?.folderId}`,
+                          "_blank"
+                        )
+                      }
+                      className="h-6 px-2 text-[10px] flex-1"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEditConfigLink("drive")}
+                      className="h-6 px-2 text-[10px]"
+                    >
+                      ✏️
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -653,52 +641,40 @@ export function GuidesDocsSection() {
           )}
 
           {config.notion?.databaseId && config.notion.databaseId.trim() !== "" && (
-            <Card>
-              <CardContent className="p-2.5">
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-3">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h5 className="font-medium text-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">Notion</Badge>
+                      <h5 className="font-semibold text-xs truncate">
                         {config.notion?.databaseName || "Notion Database"}
                       </h5>
-                      <p className="text-[10px] text-muted-foreground">Project tracking and tasks</p>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Notion</Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditConfigLink("notion")}
-                        className="h-6 px-2 text-[10px]"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          window.open(
-                            `https://notion.so/${config.notion?.databaseId.replace(/-/g, "")}`,
-                            "_blank"
-                          )
-                        }
-                        className="h-6 px-2 text-[10px]"
-                      >
-                        <ExternalLink className="h-2.5 w-2.5 mr-0.5" />
-                        View
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDeleteConfigLink("notion")}
-                        className="h-6 px-2 text-[10px]"
-                      >
-                        Delete
-                      </Button>
+                      <p className="text-[10px] text-muted-foreground line-clamp-2">Project tracking and tasks</p>
                     </div>
                   </div>
-                  <div className="p-1.5 bg-muted/50 rounded text-[10px] font-mono text-muted-foreground truncate">
-                    {config.notion?.databaseId}
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        window.open(
+                          `https://notion.so/${config.notion?.databaseId.replace(/-/g, "")}`,
+                          "_blank"
+                        )
+                      }
+                      className="h-6 px-2 text-[10px] flex-1"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEditConfigLink("notion")}
+                      className="h-6 px-2 text-[10px]"
+                    >
+                      ✏️
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -706,34 +682,30 @@ export function GuidesDocsSection() {
           )}
 
           {config.projectPageId && (
-            <Card>
-              <CardContent className="p-2.5">
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-3">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h5 className="font-medium text-xs">Project Page</h5>
-                      <p className="text-[10px] text-muted-foreground">Main project Notion page</p>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Notion</Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          window.open(
-                            `https://notion.so/${config.projectPageId?.replace(/-/g, "")}`,
-                            "_blank"
-                          )
-                        }
-                        className="h-6 px-2 text-[10px]"
-                      >
-                        <ExternalLink className="h-2.5 w-2.5 mr-0.5" />
-                        View
-                      </Button>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">Notion</Badge>
+                      <h5 className="font-semibold text-xs truncate">Project Page</h5>
+                      <p className="text-[10px] text-muted-foreground line-clamp-2">Main project Notion page</p>
                     </div>
                   </div>
-                  <div className="p-1.5 bg-muted/50 rounded text-[10px] font-mono text-muted-foreground truncate">
-                    {config.projectPageId}
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        window.open(
+                          `https://notion.so/${config.projectPageId?.replace(/-/g, "")}`,
+                          "_blank"
+                        )
+                      }
+                      className="h-6 px-2 text-[10px] flex-1"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -741,50 +713,38 @@ export function GuidesDocsSection() {
           )}
 
           {config.github?.owner && config.github.owner.trim() !== "" && config.github?.repo && config.github.repo.trim() !== "" && (
-            <Card>
-              <CardContent className="p-2.5">
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-3">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h5 className="font-medium text-xs">GitHub Repository</h5>
-                      <p className="text-[10px] text-muted-foreground">Source code repository</p>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">GitHub</Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditConfigLink("github")}
-                        className="h-6 px-2 text-[10px]"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          window.open(
-                            `https://github.com/${config.github?.owner}/${config.github?.repo}`,
-                            "_blank"
-                          )
-                        }
-                        className="h-6 px-2 text-[10px]"
-                      >
-                        <ExternalLink className="h-2.5 w-2.5 mr-0.5" />
-                        View
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDeleteConfigLink("github")}
-                        className="h-6 px-2 text-[10px]"
-                      >
-                        Delete
-                      </Button>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">GitHub</Badge>
+                      <h5 className="font-semibold text-xs truncate">GitHub Repo</h5>
+                      <p className="text-[10px] text-muted-foreground line-clamp-2">Source code repository</p>
                     </div>
                   </div>
-                  <div className="p-1.5 bg-muted/50 rounded text-[10px] font-mono text-muted-foreground">
-                    {config.github.owner}/{config.github.repo}
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        window.open(
+                          `https://github.com/${config.github?.owner}/${config.github?.repo}`,
+                          "_blank"
+                        )
+                      }
+                      className="h-6 px-2 text-[10px] flex-1"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEditConfigLink("github")}
+                      className="h-6 px-2 text-[10px]"
+                    >
+                      ✏️
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -792,29 +752,41 @@ export function GuidesDocsSection() {
           )}
 
           {customLinks.map((link) => (
-            <Card key={link.id}>
-              <CardContent className="p-2.5">
+            <Card key={link.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-3">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h5 className="font-medium text-xs">{link.title}</h5>
-                      <p className="text-[10px] text-muted-foreground">{link.description}</p>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{link.type}</Badge>
-                      <Button size="sm" variant="outline" onClick={() => handleOpenEdit(link)} className="h-6 px-2 text-[10px]">
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleViewLink(link.url)} className="h-6 px-2 text-[10px]">
-                        View
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDeleteLink(link.id)} className="h-6 px-2 text-[10px]">
-                        Delete
-                      </Button>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">{link.type}</Badge>
+                      <h5 className="font-semibold text-xs truncate">{link.title}</h5>
+                      <p className="text-[10px] text-muted-foreground line-clamp-2">{link.description}</p>
                     </div>
                   </div>
-                  <div className="p-1.5 bg-muted/50 rounded text-[10px] font-mono text-muted-foreground break-all">
-                    {link.url}
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleViewLink(link.url)}
+                      className="h-6 px-2 text-[10px] flex-1"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleOpenEdit(link)}
+                      className="h-6 px-2 text-[10px]"
+                    >
+                      ✏️
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteLink(link.id)}
+                      className="h-6 px-2 text-[10px] text-red-500 hover:text-red-700"
+                    >
+                      🗑️
+                    </Button>
                   </div>
                 </div>
               </CardContent>

@@ -202,13 +202,30 @@ export function MetricsSection() {
 
   const keyMetrics = latestMetrics.length > 0 ? (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-      {latestMetrics.map((metric) => (
-        <div key={metric.id} className="text-center p-3 rounded-lg bg-blue-50 border border-blue-200">
-          <div className="text-2xl font-bold text-blue-700">{metric.value}</div>
-          <div className="text-xs text-blue-600 mb-1">{metric.type}</div>
-          <div className="text-[10px] text-muted-foreground">{formatDate(metric.date)}</div>
-        </div>
-      ))}
+      {latestMetrics.map((metric) => {
+        const isSelected = selectedMetricType === metric.type
+        return (
+          <button
+            key={metric.id}
+            onClick={() => setSelectedMetricType(metric.type)}
+            className={`text-center p-3 rounded-lg transition-all cursor-pointer hover:shadow-md ${
+              isSelected
+                ? 'bg-blue-600 border-blue-700 ring-2 ring-blue-400'
+                : 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+            } border`}
+          >
+            <div className={`text-2xl font-bold ${isSelected ? 'text-white' : 'text-blue-700'}`}>
+              {metric.value}
+            </div>
+            <div className={`text-xs mb-1 ${isSelected ? 'text-blue-100' : 'text-blue-600'}`}>
+              {metric.type}
+            </div>
+            <div className={`text-[10px] ${isSelected ? 'text-blue-200' : 'text-muted-foreground'}`}>
+              {formatDate(metric.date)}
+            </div>
+          </button>
+        )
+      })}
     </div>
   ) : (
     <div className="text-center p-6 rounded-lg bg-muted/50 border border-dashed">
@@ -293,21 +310,11 @@ export function MetricsSection() {
 
               return (
                 <div className="border rounded-lg p-4">
-                  {/* Metric selector */}
+                  {/* Selected metric display */}
                   <div className="mb-4 flex items-center justify-between">
-                    <div className="flex-1 max-w-xs">
-                      <Select value={currentType} onValueChange={setSelectedMetricType}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select metric" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {metricTypes.map((type) => (
-                            <SelectItem key={type} value={type} className="capitalize">
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div>
+                      <h5 className="text-lg font-semibold capitalize">{currentType}</h5>
+                      <p className="text-xs text-muted-foreground">Click on a card above to switch metrics</p>
                     </div>
                     <div className="text-right">
                       <p className="text-3xl font-bold text-blue-700">{latestValue}</p>
@@ -392,9 +399,9 @@ export function MetricsSection() {
   return (
     <>
       <DashboardSection
-        title="Metrics Overview"
-        description="Track key metrics over time"
-        icon="📊"
+        title="Metrics"
+        description="Track input metrics and actions over time"
+        icon="💪"
         keyMetrics={keyMetrics}
         detailedContent={detailedContent}
       />
