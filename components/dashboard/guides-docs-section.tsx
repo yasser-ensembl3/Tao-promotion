@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DashboardSection } from "./dashboard-section"
-import { useProjectConfig } from "@/contexts/project-config-context"
+import { useProjectConfig } from "@/lib/project-config"
 import { ExternalLink } from "lucide-react"
 
 interface Link {
@@ -37,7 +37,7 @@ const LINK_TYPES = [
 ]
 
 export function GuidesDocsSection() {
-  const { config, updateConfig } = useProjectConfig()
+  const config = useProjectConfig()
   const [customLinks, setCustomLinks] = useState<Link[]>([])
   const [documentsLoaded, setDocumentsLoaded] = useState(false)
   const [syncAttempted, setSyncAttempted] = useState(false)
@@ -53,28 +53,27 @@ export function GuidesDocsSection() {
 
   // Load custom links from Notion documents database
   useEffect(() => {
-    if (config.notionDatabases?.documents) {
+    if (config?.notionDatabases?.documents) {
       setDocumentsLoaded(false)
       setSyncAttempted(false)
       fetchDocuments()
     }
-  }, [config.notionDatabases?.documents])
+  }, [config?.notionDatabases?.documents])
 
   // Sync configured links to documents database on initialization
   useEffect(() => {
     const syncConfiguredLinks = async () => {
       // Only sync once after documents have been loaded
-      if (!config.notionDatabases?.documents || !documentsLoaded || syncAttempted) return
+      if (!config?.notionDatabases?.documents || !documentsLoaded || syncAttempted) return
 
       console.log("[GuidesDocsSection] Starting sync check with", customLinks.length, "existing documents")
 
       // Check if there are any configured links to sync
-      const hasDrive = config.googleDrive?.folderId && config.googleDrive.folderId.trim() !== ""
-      const hasNotion = config.notion?.databaseId && config.notion.databaseId.trim() !== ""
-      const hasGitHub = config.github?.owner && config.github.owner.trim() !== "" &&
-                       config.github?.repo && config.github.repo.trim() !== ""
+      const hasDrive = config?.googleDrive?.folderId && config?.googleDrive.folderId.trim() !== ""
+      const hasGitHub = config?.github?.owner && config?.github.owner.trim() !== "" &&
+                       config?.github?.repo && config?.github.repo.trim() !== ""
 
-      if (!hasDrive && !hasNotion && !hasGitHub) {
+      if (!hasDrive && !hasGitHub) {
         setSyncAttempted(true)
         return
       }
@@ -83,9 +82,9 @@ export function GuidesDocsSection() {
         let needsRefresh = false
 
         // Check and sync Google Drive link
-        if (hasDrive && config.googleDrive) {
+        if (hasDrive && config?.googleDrive) {
           // Check by URL to avoid duplicates
-          const driveUrl = `https://drive.google.com/drive/folders/${config.googleDrive.folderId}`
+          const driveUrl = `https://drive.google.com/drive/folders/${config?.googleDrive.folderId}`
           const existingDriveDoc = customLinks.find(link =>
             link.url === driveUrl || link.type === "Google Drive"
           )
@@ -95,8 +94,8 @@ export function GuidesDocsSection() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                databaseId: config.notionDatabases.documents,
-                title: config.googleDrive.folderName || "Google Drive Folder",
+                databaseId: config?.notionDatabases.documents,
+                title: config?.googleDrive.folderName || "Google Drive Folder",
                 url: driveUrl,
                 description: "Main project documentation",
                 type: "Google Drive",
@@ -108,36 +107,10 @@ export function GuidesDocsSection() {
           }
         }
 
-        // Check and sync Notion database link
-        if (hasNotion && config.notion) {
-          // Check by URL to avoid duplicates
-          const notionUrl = `https://notion.so/${config.notion.databaseId.replace(/-/g, "")}`
-          const existingNotionDoc = customLinks.find(link =>
-            link.url === notionUrl || (link.type === "Notion" && link.title === (config.notion?.databaseName || "Notion Database"))
-          )
-          if (!existingNotionDoc) {
-            console.log("[GuidesDocsSection] Syncing Notion link to documents database")
-            await fetch("/api/notion/documents", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                databaseId: config.notionDatabases.documents,
-                title: config.notion.databaseName || "Notion Database",
-                url: notionUrl,
-                description: "Project tracking and tasks",
-                type: "Notion",
-              }),
-            })
-            needsRefresh = true
-          } else {
-            console.log("[GuidesDocsSection] Notion link already exists")
-          }
-        }
-
         // Check and sync GitHub repository link
-        if (hasGitHub && config.github) {
+        if (hasGitHub && config?.github) {
           // Check by URL to avoid duplicates
-          const githubUrl = `https://github.com/${config.github.owner}/${config.github.repo}`
+          const githubUrl = `https://github.com/${config?.github.owner}/${config?.github.repo}`
           const existingGitHubDoc = customLinks.find(link =>
             link.url === githubUrl || link.type === "GitHub"
           )
@@ -147,7 +120,7 @@ export function GuidesDocsSection() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                databaseId: config.notionDatabases.documents,
+                databaseId: config?.notionDatabases.documents,
                 title: "GitHub Repository",
                 url: githubUrl,
                 description: "Source code repository",
@@ -178,13 +151,13 @@ export function GuidesDocsSection() {
     if (documentsLoaded && !syncAttempted) {
       syncConfiguredLinks()
     }
-  }, [documentsLoaded, syncAttempted, config.notionDatabases?.documents, config.googleDrive?.folderId, config.notion?.databaseId, config.github?.owner, config.github?.repo, customLinks])
+  }, [documentsLoaded, syncAttempted, config?.notionDatabases?.documents, config?.googleDrive?.folderId, config?.github?.owner, config?.github?.repo, customLinks])
 
   const fetchDocuments = async () => {
-    if (!config.notionDatabases?.documents) return
+    if (!config?.notionDatabases?.documents) return
 
     try {
-      const response = await fetch(`/api/notion/documents?databaseId=${config.notionDatabases.documents}`)
+      const response = await fetch(`/api/notion/documents?databaseId=${config?.notionDatabases.documents}`)
       if (response.ok) {
         const data = await response.json()
         const documents = data.documents || []
@@ -245,22 +218,15 @@ export function GuidesDocsSection() {
 
     if (type === "drive") {
       setFormData({
-        title: config.googleDrive?.folderName || "Google Drive Folder",
-        url: config.googleDrive?.folderId || "",
+        title: config?.googleDrive?.folderName || "Google Drive Folder",
+        url: config?.googleDrive?.folderId || "",
         description: "Main project documentation",
         type: "drive"
-      })
-    } else if (type === "notion") {
-      setFormData({
-        title: config.notion?.databaseName || "Notion Database",
-        url: config.notion?.databaseId || "",
-        description: "Project tracking and tasks",
-        type: "notion"
       })
     } else if (type === "github") {
       setFormData({
         title: "GitHub Repository",
-        url: `${config.github?.owner || ""}/${config.github?.repo || ""}`,
+        url: `${config?.github?.owner || ""}/${config?.github?.repo || ""}`,
         description: "Source code repository",
         type: "github"
       })
@@ -270,100 +236,13 @@ export function GuidesDocsSection() {
   }
 
   const handleSaveLink = async () => {
-    if (!formData.title || !formData.url) return
+    if (!formData.title || !formData.url || !config) return
 
-    // Handle config link updates
-    if (editingConfigType) {
-      if (editingConfigType === "drive") {
-        updateConfig({
-          googleDrive: {
-            folderId: formData.url,
-            folderName: formData.title
-          }
-        })
-      } else if (editingConfigType === "notion") {
-        updateConfig({
-          notion: {
-            databaseId: formData.url,
-            databaseName: formData.title
-          }
-        })
-      } else if (editingConfigType === "github") {
-        const [owner, repo] = formData.url.split("/")
-        if (owner && repo) {
-          updateConfig({
-            github: {
-              owner: owner.trim(),
-              repo: repo.trim()
-            }
-          })
-        }
-      }
-
-      // Also sync to documents database if available
-      if (config.notionDatabases?.documents) {
-        try {
-          const typeLabel = editingConfigType === "drive" ? "Google Drive" :
-                          editingConfigType === "notion" ? "Notion" : "GitHub"
-
-          let fullUrl = formData.url
-          if (editingConfigType === "drive") {
-            fullUrl = `https://drive.google.com/drive/folders/${formData.url}`
-          } else if (editingConfigType === "notion") {
-            fullUrl = `https://notion.so/${formData.url.replace(/-/g, "")}`
-          } else if (editingConfigType === "github") {
-            fullUrl = `https://github.com/${formData.url}`
-          }
-
-          // Check if a document already exists for this config type
-          const existingDoc = customLinks.find(link =>
-            (editingConfigType === "drive" && link.type === "Google Drive") ||
-            (editingConfigType === "notion" && link.type === "Notion" && link.title === formData.title) ||
-            (editingConfigType === "github" && link.type === "GitHub")
-          )
-
-          if (existingDoc) {
-            // Update existing
-            await fetch("/api/notion/documents", {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                documentId: existingDoc.id,
-                title: formData.title,
-                url: fullUrl,
-                description: formData.description,
-                type: typeLabel,
-              }),
-            })
-          } else {
-            // Create new
-            await fetch("/api/notion/documents", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                databaseId: config.notionDatabases.documents,
-                title: formData.title,
-                url: fullUrl,
-                description: formData.description,
-                type: typeLabel,
-              }),
-            })
-          }
-          await fetchDocuments()
-        } catch (error) {
-          console.error("Error syncing config link to documents:", error)
-        }
-      }
-
-      setOpen(false)
-      setFormData({ title: "", url: "", description: "", type: "other" })
-      setEditingId(null)
-      setEditingConfigType(null)
-      return
-    }
+    // Config links (Drive, GitHub) cannot be edited in new architecture, they come from .env
+    // This function now only handles custom link documents
 
     // Handle custom links with Notion sync
-    if (!config.notionDatabases?.documents) {
+    if (!config?.notionDatabases?.documents) {
       // Fallback to local state if no Notion database
       const linkData = {
         title: formData.title,
@@ -422,7 +301,7 @@ export function GuidesDocsSection() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            databaseId: config.notionDatabases.documents,
+            databaseId: config?.notionDatabases.documents,
             title: formData.title,
             url: formData.url,
             description: formData.description,
@@ -457,7 +336,7 @@ export function GuidesDocsSection() {
   const handleDeleteLink = async (linkId: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce lien ?")) return
 
-    if (!config.notionDatabases?.documents) {
+    if (!config?.notionDatabases?.documents) {
       // Fallback to local state
       setCustomLinks(customLinks.filter(link => link.id !== linkId))
       return
@@ -479,32 +358,8 @@ export function GuidesDocsSection() {
     }
   }
 
-  const handleDeleteConfigLink = (type: "drive" | "notion" | "github") => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce lien ?")) return
-
-    if (type === "drive") {
-      updateConfig({
-        googleDrive: {
-          folderId: "",
-          folderName: ""
-        }
-      })
-    } else if (type === "notion") {
-      updateConfig({
-        notion: {
-          databaseId: "",
-          databaseName: ""
-        }
-      })
-    } else if (type === "github") {
-      updateConfig({
-        github: {
-          owner: "",
-          repo: ""
-        }
-      })
-    }
-  }
+  // Config links (Drive, GitHub) are read-only from .env in new architecture
+  // No delete functionality needed for config links
 
   const detailedContent = (
     <div className="space-y-6">
@@ -599,7 +454,7 @@ export function GuidesDocsSection() {
           </Dialog>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {config.googleDrive?.folderId && config.googleDrive.folderId.trim() !== "" && (
+          {config?.googleDrive?.folderId && config?.googleDrive.folderId.trim() !== "" && (
             <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-3">
                 <div className="space-y-2">
@@ -607,7 +462,7 @@ export function GuidesDocsSection() {
                     <div className="flex-1 min-w-0">
                       <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">Drive</Badge>
                       <h5 className="font-semibold text-xs truncate">
-                        {config.googleDrive?.folderName || "Google Drive"}
+                        {config?.googleDrive?.folderName || "Google Drive"}
                       </h5>
                       <p className="text-[10px] text-muted-foreground line-clamp-2">Main project documentation</p>
                     </div>
@@ -618,7 +473,7 @@ export function GuidesDocsSection() {
                       variant="outline"
                       onClick={() =>
                         window.open(
-                          `https://drive.google.com/drive/folders/${config.googleDrive?.folderId}`,
+                          `https://drive.google.com/drive/folders/${config?.googleDrive?.folderId}`,
                           "_blank"
                         )
                       }
@@ -640,48 +495,7 @@ export function GuidesDocsSection() {
             </Card>
           )}
 
-          {config.notion?.databaseId && config.notion.databaseId.trim() !== "" && (
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-3">
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">Notion</Badge>
-                      <h5 className="font-semibold text-xs truncate">
-                        {config.notion?.databaseName || "Notion Database"}
-                      </h5>
-                      <p className="text-[10px] text-muted-foreground line-clamp-2">Project tracking and tasks</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        window.open(
-                          `https://notion.so/${config.notion?.databaseId.replace(/-/g, "")}`,
-                          "_blank"
-                        )
-                      }
-                      className="h-6 px-2 text-[10px] flex-1"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEditConfigLink("notion")}
-                      className="h-6 px-2 text-[10px]"
-                    >
-                      ✏️
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {config.projectPageId && (
+          {config?.projectPageId && (
             <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-3">
                 <div className="space-y-2">
@@ -698,7 +512,7 @@ export function GuidesDocsSection() {
                       variant="outline"
                       onClick={() =>
                         window.open(
-                          `https://notion.so/${config.projectPageId?.replace(/-/g, "")}`,
+                          `https://notion.so/${config?.projectPageId?.replace(/-/g, "")}`,
                           "_blank"
                         )
                       }
@@ -712,7 +526,7 @@ export function GuidesDocsSection() {
             </Card>
           )}
 
-          {config.github?.owner && config.github.owner.trim() !== "" && config.github?.repo && config.github.repo.trim() !== "" && (
+          {config?.github?.owner && config?.github.owner.trim() !== "" && config?.github?.repo && config?.github.repo.trim() !== "" && (
             <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-3">
                 <div className="space-y-2">
@@ -729,7 +543,7 @@ export function GuidesDocsSection() {
                       variant="outline"
                       onClick={() =>
                         window.open(
-                          `https://github.com/${config.github?.owner}/${config.github?.repo}`,
+                          `https://github.com/${config?.github?.owner}/${config?.github?.repo}`,
                           "_blank"
                         )
                       }
@@ -794,10 +608,9 @@ export function GuidesDocsSection() {
           ))}
 
           {customLinks.length === 0 &&
-           !(config.googleDrive?.folderId && config.googleDrive.folderId.trim() !== "") &&
-           !(config.notion?.databaseId && config.notion.databaseId.trim() !== "") &&
-           !(config.github?.owner && config.github.owner.trim() !== "" && config.github?.repo && config.github.repo.trim() !== "") &&
-           !config.projectPageId && (
+           !(config?.googleDrive?.folderId && config?.googleDrive.folderId.trim() !== "") &&
+           !(config?.github?.owner && config?.github.owner.trim() !== "" && config?.github?.repo && config?.github.repo.trim() !== "") &&
+           !config?.projectPageId && (
             <div className="p-8 border rounded-lg text-center border-dashed">
               <p className="text-sm text-muted-foreground">
                 No links added yet. Click &ldquo;Add Link&rdquo; to add your first resource link.

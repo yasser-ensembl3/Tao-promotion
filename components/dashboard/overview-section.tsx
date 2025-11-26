@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { DashboardSection } from "./dashboard-section"
-import { useProjectConfig } from "@/contexts/project-config-context"
+import { useProjectConfig } from "@/lib/project-config"
 
 interface Milestone {
   id: string
@@ -31,7 +31,7 @@ interface Milestone {
 }
 
 export function OverviewSection() {
-  const { config } = useProjectConfig()
+  const config = useProjectConfig()
   const [description, setDescription] = useState("")
   const [vision, setVision] = useState("")
   const [milestones, setMilestones] = useState<Milestone[]>([])
@@ -54,19 +54,19 @@ export function OverviewSection() {
 
   // Charger les données depuis Notion au changement de projet
   useEffect(() => {
-    if (config.projectPageId) {
+    if (config?.projectPageId) {
       fetchOverview()
     }
-    if (config.notionDatabases?.milestones) {
+    if (config?.notionDatabases?.milestones) {
       fetchMilestones()
     }
-  }, [config.projectPageId, config.notionDatabases?.milestones])
+  }, [config?.projectPageId, config?.notionDatabases?.milestones])
 
   const fetchOverview = async () => {
-    if (!config.projectPageId) return
+    if (!config?.projectPageId) return
 
     try {
-      const response = await fetch(`/api/notion/project-overview?projectPageId=${config.projectPageId}`)
+      const response = await fetch(`/api/notion/project-overview?projectPageId=${config?.projectPageId}`)
       if (response.ok) {
         const data = await response.json()
         setDescription(data.description || "")
@@ -78,10 +78,10 @@ export function OverviewSection() {
   }
 
   const fetchMilestones = async () => {
-    if (!config.notionDatabases?.milestones) return
+    if (!config?.notionDatabases?.milestones) return
 
     try {
-      const response = await fetch(`/api/notion/milestones?databaseId=${config.notionDatabases.milestones}`)
+      const response = await fetch(`/api/notion/milestones?databaseId=${config?.notionDatabases.milestones}`)
       if (response.ok) {
         const data = await response.json()
         setMilestones(data.milestones || [])
@@ -97,7 +97,7 @@ export function OverviewSection() {
   }
 
   const handleSaveDescription = async () => {
-    if (!config.projectPageId) {
+    if (!config?.projectPageId) {
       setDescription(tempDescription)
       setEditingDescription(false)
       return
@@ -111,7 +111,7 @@ export function OverviewSection() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          projectPageId: config.projectPageId,
+          projectPageId: config?.projectPageId,
           description: tempDescription,
         }),
       })
@@ -135,7 +135,7 @@ export function OverviewSection() {
   }
 
   const handleSaveVision = async () => {
-    if (!config.projectPageId) {
+    if (!config?.projectPageId) {
       setVision(tempVision)
       setEditingVision(false)
       return
@@ -149,7 +149,7 @@ export function OverviewSection() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          projectPageId: config.projectPageId,
+          projectPageId: config?.projectPageId,
           vision: tempVision,
         }),
       })
@@ -180,7 +180,7 @@ export function OverviewSection() {
   const handleSaveMilestone = async () => {
     if (!newMilestone.title.trim()) return
 
-    if (!config.notionDatabases?.milestones) {
+    if (!config?.notionDatabases?.milestones) {
       // Fallback to local state if no Notion database
       const milestone: Milestone = {
         id: Date.now().toString(),
@@ -205,7 +205,7 @@ export function OverviewSection() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          databaseId: config.notionDatabases.milestones,
+          databaseId: config?.notionDatabases.milestones,
           title: newMilestone.title,
           dueDate: newMilestone.dueDate,
           description: newMilestone.description,
@@ -243,7 +243,7 @@ export function OverviewSection() {
   const handleUpdateMilestone = async () => {
     if (!newMilestone.title.trim() || !editingMilestoneId) return
 
-    if (!config.notionDatabases?.milestones) {
+    if (!config?.notionDatabases?.milestones) {
       // Fallback to local state
       setMilestones(milestones.map(m =>
         m.id === editingMilestoneId
@@ -291,7 +291,7 @@ export function OverviewSection() {
   const handleDeleteMilestone = async (milestoneId: string) => {
     if (!confirm("Are you sure you want to delete this milestone?")) return
 
-    if (!config.notionDatabases?.milestones) {
+    if (!config?.notionDatabases?.milestones) {
       // Fallback to local state
       setMilestones(milestones.filter(m => m.id !== milestoneId))
       return

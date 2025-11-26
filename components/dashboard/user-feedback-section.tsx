@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useProjectConfig } from "@/contexts/project-config-context"
+import { useProjectConfig } from "@/lib/project-config"
 import { ChevronDown, ChevronUp } from "lucide-react"
 
 interface Feedback {
@@ -21,7 +21,7 @@ interface Feedback {
 }
 
 export function UserFeedbackSection() {
-  const { config } = useProjectConfig()
+  const config = useProjectConfig()
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
@@ -35,13 +35,13 @@ export function UserFeedbackSection() {
   const [detailsOpen, setDetailsOpen] = useState(true)
 
   const fetchFeedbacks = async () => {
-    if (!config.notionDatabases?.feedback) {
+    if (!config?.notionDatabases?.feedback) {
       return
     }
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/notion/feedback?databaseId=${config.notionDatabases.feedback}`)
+      const response = await fetch(`/api/notion/feedback?databaseId=${config?.notionDatabases.feedback}`)
       if (response.ok) {
         const data = await response.json()
         setFeedbacks(data.feedbacks || [])
@@ -56,10 +56,10 @@ export function UserFeedbackSection() {
   }
 
   useEffect(() => {
-    if (config.notionDatabases?.feedback) {
+    if (config?.notionDatabases?.feedback) {
       fetchFeedbacks()
     }
-  }, [config.notionDatabases?.feedback])
+  }, [config?.notionDatabases?.feedback])
 
   const handleOpenAdd = () => {
     setEditingId(null)
@@ -84,7 +84,7 @@ export function UserFeedbackSection() {
       return
     }
 
-    if (!config.notionDatabases?.feedback) {
+    if (!config?.notionDatabases?.feedback) {
       alert("Feedback database not configured in Project Settings")
       return
     }
@@ -124,7 +124,7 @@ export function UserFeedbackSection() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            databaseId: config.notionDatabases.feedback,
+            databaseId: config?.notionDatabases.feedback,
             title: formData.title,
             date: formData.date,
             feedback: formData.feedback,
@@ -227,7 +227,7 @@ export function UserFeedbackSection() {
                 e.stopPropagation()
                 fetchFeedbacks()
               }}
-              disabled={loading || !config.notionDatabases?.feedback}
+              disabled={loading || !config?.notionDatabases?.feedback}
             >
               {loading ? "Refreshing..." : "Refresh"}
             </Button>
@@ -237,7 +237,7 @@ export function UserFeedbackSection() {
                 e.stopPropagation()
                 handleOpenAdd()
               }}
-              disabled={!config.notionDatabases?.feedback}
+              disabled={!config?.notionDatabases?.feedback}
             >
               Add Feedback
             </Button>
@@ -251,7 +251,7 @@ export function UserFeedbackSection() {
 
         {detailsOpen && (
           <div className="p-4 pt-0 space-y-4">
-            {!config.notionDatabases?.feedback ? (
+            {!config?.notionDatabases?.feedback ? (
               <div className="p-8 border rounded-lg text-center border-dashed bg-muted/30">
                 <p className="text-sm text-muted-foreground">
                   Feedback database not configured. Configure it in Project Settings.
@@ -326,7 +326,7 @@ export function UserFeedbackSection() {
                 <p className="text-xs text-muted-foreground">Track and manage user feedback</p>
               </div>
             </div>
-            <Button size="sm" onClick={handleOpenAdd} disabled={!config.notionDatabases?.feedback}>
+            <Button size="sm" onClick={handleOpenAdd} disabled={!config?.notionDatabases?.feedback}>
               Add Feedback
             </Button>
           </div>

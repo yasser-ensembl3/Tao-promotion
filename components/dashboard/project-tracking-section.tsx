@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { DashboardSection } from "./dashboard-section"
-import { useProjectConfig } from "@/contexts/project-config-context"
+import { useProjectConfig } from "@/lib/project-config"
 
 interface Task {
   id: string
@@ -27,7 +27,7 @@ interface Task {
 }
 
 export function ProjectTrackingSection() {
-  const { config } = useProjectConfig()
+  const config = useProjectConfig()
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -86,7 +86,7 @@ export function ProjectTrackingSection() {
   }, {} as Record<string, Task[]>)
 
   const fetchTasks = async () => {
-    if (!config.notionDatabases?.tasks) {
+    if (!config?.notionDatabases?.tasks) {
       setError("Tasks database not configured")
       return
     }
@@ -94,7 +94,7 @@ export function ProjectTrackingSection() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/notion/tasks?databaseId=${config.notionDatabases.tasks}`)
+      const response = await fetch(`/api/notion/tasks?databaseId=${config?.notionDatabases.tasks}`)
       const data = await response.json()
 
       if (!response.ok) {
@@ -110,13 +110,13 @@ export function ProjectTrackingSection() {
   }
 
   useEffect(() => {
-    if (config.notionDatabases?.tasks) {
+    if (config?.notionDatabases?.tasks) {
       fetchTasks()
     }
-  }, [config.notionDatabases?.tasks])
+  }, [config?.notionDatabases?.tasks])
 
   const handleCreateTask = async () => {
-    if (!formData.title || !config.notionDatabases?.tasks) return
+    if (!formData.title || !config?.notionDatabases?.tasks) return
 
     try {
       const tagsArray = formData.tags
@@ -130,7 +130,7 @@ export function ProjectTrackingSection() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          databaseId: config.notionDatabases.tasks,
+          databaseId: config?.notionDatabases.tasks,
           title: formData.title,
           assignee: formData.assignee || undefined,
           status: formData.status || undefined,
@@ -210,7 +210,7 @@ export function ProjectTrackingSection() {
           <div className="flex gap-2">
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" disabled={!config.notionDatabases?.tasks}>
+                <Button size="sm" disabled={!config?.notionDatabases?.tasks}>
                   New Task
                 </Button>
               </DialogTrigger>
@@ -344,7 +344,7 @@ export function ProjectTrackingSection() {
         ) : tasks.length === 0 ? (
           <div className="p-8 border rounded-lg text-center">
             <p className="text-sm text-muted-foreground">
-              {config.notionDatabases?.tasks
+              {config?.notionDatabases?.tasks
                 ? "No tasks available. Click 'New Task' to create your first task."
                 : "Tasks database not configured. Configure it in Project Settings."}
             </p>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardSection } from "./dashboard-section"
-import { useProjectConfig } from "@/contexts/project-config-context"
+import { useProjectConfig } from "@/lib/project-config"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import {
@@ -42,7 +42,7 @@ interface Metric {
 }
 
 export function GoalsMetricsSection() {
-  const { config } = useProjectConfig()
+  const config = useProjectConfig()
   const [metrics, setMetrics] = useState<Metric[]>([])
   const [loading, setLoading] = useState(false)
   const [isAddMetricOpen, setIsAddMetricOpen] = useState(false)
@@ -55,13 +55,13 @@ export function GoalsMetricsSection() {
 
   // Fetch metrics from Notion
   const fetchMetrics = async () => {
-    if (!config.notionDatabases?.goals) {
+    if (!config?.notionDatabases?.goals) {
       return
     }
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/notion/metrics?databaseId=${config.notionDatabases.goals}`)
+      const response = await fetch(`/api/notion/metrics?databaseId=${config?.notionDatabases.goals}`)
       if (response.ok) {
         const data = await response.json()
         setMetrics(data.metrics || [])
@@ -76,10 +76,10 @@ export function GoalsMetricsSection() {
   }
 
   useEffect(() => {
-    if (config.notionDatabases?.goals) {
+    if (config?.notionDatabases?.goals) {
       fetchMetrics()
     }
-  }, [config.notionDatabases?.goals])
+  }, [config?.notionDatabases?.goals])
 
   // Auto-select first metric type when metrics load
   useEffect(() => {
@@ -121,7 +121,7 @@ export function GoalsMetricsSection() {
       return
     }
 
-    if (!config.notionDatabases?.goals) {
+    if (!config?.notionDatabases?.goals) {
       alert("Goals database not configured in Project Settings")
       return
     }
@@ -137,7 +137,7 @@ export function GoalsMetricsSection() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          databaseId: config.notionDatabases.goals,
+          databaseId: config?.notionDatabases.goals,
           type: normalizedType,
           value: metricForm.value,
           date: metricForm.date,
@@ -248,14 +248,14 @@ export function GoalsMetricsSection() {
               size="sm"
               variant="outline"
               onClick={fetchMetrics}
-              disabled={loading || !config.notionDatabases?.goals}
+              disabled={loading || !config?.notionDatabases?.goals}
             >
               {loading ? "Refreshing..." : "Refresh"}
             </Button>
             <Button
               size="sm"
               onClick={handleAddMetric}
-              disabled={!config.notionDatabases?.goals}
+              disabled={!config?.notionDatabases?.goals}
             >
               <Plus className="h-4 w-4 mr-1" />
               Add Goal
@@ -264,7 +264,7 @@ export function GoalsMetricsSection() {
         </div>
 
         <div className="space-y-6">
-            {!config.notionDatabases?.goals ? (
+            {!config?.notionDatabases?.goals ? (
               <div className="p-8 border rounded-lg text-center border-dashed bg-muted/30">
                 <p className="text-sm text-muted-foreground">
                   Goals database not configured. Configure it in Project Settings.

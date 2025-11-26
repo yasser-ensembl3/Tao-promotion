@@ -1,26 +1,41 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardSection } from "./dashboard-section"
-import { useProjectConfig } from "@/contexts/project-config-context"
+import { useProjectConfig } from "@/lib/project-config"
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react"
 
 export function ReportsSection() {
-  const { config, updateConfig } = useProjectConfig()
+  const config = useProjectConfig()
+  const [reports, setReports] = useState<any[]>([])
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(true)
 
+  // Load reports from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('minivault_weekly_reports')
+    if (stored) {
+      try {
+        setReports(JSON.parse(stored))
+      } catch (e) {
+        console.error('Failed to parse stored reports:', e)
+      }
+    }
+  }, [])
+
   const generateReport = async () => {
+    if (!config) return
+
     setGenerating(true)
     setError(null)
     try {
       // Fetch tasks from Notion if configured
       let tasksData = { tasks: [] }
-      if (config.notionDatabases?.tasks) {
-        const tasksResponse = await fetch(`/api/notion/tasks?databaseId=${config.notionDatabases.tasks}`)
+      if (config?.notionDatabases?.tasks) {
+        const tasksResponse = await fetch(`/api/notion/tasks?databaseId=${config?.notionDatabases.tasks}`)
         if (tasksResponse.ok) {
           tasksData = await tasksResponse.json()
         }
@@ -50,10 +65,9 @@ export function ReportsSection() {
         title: `Weekly Report - ${new Date().toLocaleDateString()}`
       }
 
-      const existingReports = config.weeklyReports || []
-      updateConfig({
-        weeklyReports: [newReport, ...existingReports]
-      })
+      const updatedReports = [newReport, ...reports]
+      setReports(updatedReports)
+      localStorage.setItem('minivault_weekly_reports', JSON.stringify(updatedReports))
 
     } catch (err: any) {
       setError(err.message)
@@ -64,12 +78,11 @@ export function ReportsSection() {
 
   const deleteReport = (reportId: string) => {
     if (confirm("Are you sure you want to delete this report?")) {
-      const updatedReports = (config.weeklyReports || []).filter(r => r.id !== reportId)
-      updateConfig({ weeklyReports: updatedReports })
+      const updatedReports = reports.filter(r => r.id !== reportId)
+      setReports(updatedReports)
+      localStorage.setItem('minivault_weekly_reports', JSON.stringify(updatedReports))
     }
   }
-
-  const reports = config.weeklyReports || []
   const latestReport = reports[0]
 
   const keyMetrics = (
@@ -79,7 +92,7 @@ export function ReportsSection() {
         <div className="text-sm text-blue-600">Reports Generated</div>
       </div>
       <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200">
-        <div className="text-2xl font-bold text-green-700">{config.notionDatabases?.tasks ? "✓" : "—"}</div>
+        <div className="text-2xl font-bold text-green-700">{config?.notionDatabases?.tasks ? "✓" : "—"}</div>
         <div className="text-sm text-green-600">Data Source</div>
       </div>
       <div className="text-center p-3 rounded-lg bg-purple-50 border border-purple-200">
@@ -127,7 +140,7 @@ export function ReportsSection() {
               </div>
             )}
 
-            {!config.notionDatabases?.tasks && (
+            {!config?.notionDatabases?.tasks && (
               <div className="p-4 border border-dashed rounded-lg bg-muted/30">
                 <p className="text-sm text-muted-foreground">
                   Configure your Notion Tasks database in Project Settings to generate AI-powered reports from your task data.
@@ -201,7 +214,7 @@ export function ReportsSection() {
           <div className="flex items-center justify-between">
             <span className="text-sm">Data Sources</span>
             <span className="text-sm font-medium">
-              {config.notionDatabases?.tasks ? "Notion Tasks" : "Not configured"}
+              {config?.notionDatabases?.tasks ? "Notion Tasks" : "Not configured"}
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -229,7 +242,7 @@ export function ReportsSection() {
               <p className="text-xs text-muted-foreground">Generate AI-powered project summaries</p>
             </div>
           </div>
-          <Button size="sm" onClick={generateReport} disabled={generating || !config.notionDatabases?.tasks}>
+          <Button size="sm" onClick={generateReport} disabled={generating || !config?.notionDatabases?.tasks}>
             {generating ? "Generating..." : "Generate Report"}
           </Button>
         </div>

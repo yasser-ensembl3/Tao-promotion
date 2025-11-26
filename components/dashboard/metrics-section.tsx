@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardSection } from "./dashboard-section"
-import { useProjectConfig } from "@/contexts/project-config-context"
+import { useProjectConfig } from "@/lib/project-config"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import {
@@ -42,7 +42,7 @@ interface Metric {
 }
 
 export function MetricsSection() {
-  const { config } = useProjectConfig()
+  const config = useProjectConfig()
   const [metrics, setMetrics] = useState<Metric[]>([])
   const [loading, setLoading] = useState(false)
   const [isAddMetricOpen, setIsAddMetricOpen] = useState(false)
@@ -55,13 +55,13 @@ export function MetricsSection() {
 
   // Fetch metrics from Notion
   const fetchMetrics = async () => {
-    if (!config.notionDatabases?.metrics) {
+    if (!config?.notionDatabases?.metrics) {
       return
     }
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/notion/metrics?databaseId=${config.notionDatabases.metrics}`)
+      const response = await fetch(`/api/notion/metrics?databaseId=${config?.notionDatabases.metrics}`)
       if (response.ok) {
         const data = await response.json()
         setMetrics(data.metrics || [])
@@ -76,10 +76,10 @@ export function MetricsSection() {
   }
 
   useEffect(() => {
-    if (config.notionDatabases?.metrics) {
+    if (config?.notionDatabases?.metrics) {
       fetchMetrics()
     }
-  }, [config.notionDatabases?.metrics])
+  }, [config?.notionDatabases?.metrics])
 
   // Auto-select first metric type when metrics load
   useEffect(() => {
@@ -121,7 +121,7 @@ export function MetricsSection() {
       return
     }
 
-    if (!config.notionDatabases?.metrics) {
+    if (!config?.notionDatabases?.metrics) {
       alert("Metrics database not configured in Project Settings")
       return
     }
@@ -137,7 +137,7 @@ export function MetricsSection() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          databaseId: config.notionDatabases.metrics,
+          databaseId: config?.notionDatabases.metrics,
           type: normalizedType,
           value: metricForm.value,
           date: metricForm.date,
@@ -248,14 +248,14 @@ export function MetricsSection() {
               size="sm"
               variant="outline"
               onClick={fetchMetrics}
-              disabled={loading || !config.notionDatabases?.metrics}
+              disabled={loading || !config?.notionDatabases?.metrics}
             >
               {loading ? "Refreshing..." : "Refresh"}
             </Button>
             <Button
               size="sm"
               onClick={handleAddMetric}
-              disabled={!config.notionDatabases?.metrics}
+              disabled={!config?.notionDatabases?.metrics}
             >
               <Plus className="h-4 w-4 mr-1" />
               Add Metric
@@ -264,7 +264,7 @@ export function MetricsSection() {
         </div>
 
         <div className="space-y-6">
-            {!config.notionDatabases?.metrics ? (
+            {!config?.notionDatabases?.metrics ? (
               <div className="p-8 border rounded-lg text-center border-dashed bg-muted/30">
                 <p className="text-sm text-muted-foreground">
                   Metrics database not configured. Configure it in Project Settings.

@@ -6,12 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) and other LLMs when 
 
 MiniVault is a unified project management dashboard built with Next.js 14 (App Router) that integrates Notion, Google Drive, Gmail, and GitHub into a single interface for small teams. The app uses NextAuth.js for OAuth authentication and shadcn/ui components with Tailwind CSS in dark mode.
 
+### Core Architecture: One Repo = One Project
+
+**Important**: MiniVault follows a **one repository = one project** architecture. Each deployment is dedicated to a single project, configured via environment variables in `.env.local`. This means:
+- No project switching or dropdowns in the UI
+- All configuration (Notion databases, GitHub repo, Drive folder) is set via environment variables
+- Each project gets its own forked/cloned MiniVault repository
+- Simple, focused dashboard experience for a single project
+
 ### Core Purpose
 - **Unified Dashboard**: Single interface for all project resources (Notion, Drive, GitHub)
 - **OAuth Integration**: Secure authentication with Google and GitHub
 - **Modular Sections**: Collapsible dashboard sections for different project aspects
 - **Mobile-Optimized**: Fully responsive design for mobile, tablet, and desktop
 - **Metrics Tracking**: Separate input (actions) and output (results) metrics with interactive charts
+- **Environment-Based Config**: All project settings configured via .env variables
 
 ## Development Commands
 
@@ -207,74 +216,68 @@ The app is fully optimized for mobile devices:
     metrics-section.tsx            # Metrics/Inputs with charts
     guides-docs-section.tsx        # Compact card grid for links
     project-tracking-section.tsx   # Projects & Tasks Kanban board
-    reports-section.tsx            # AI reports (compact when empty)
+    reports-section.tsx            # AI reports (uses localStorage for storage)
     user-feedback-section.tsx      # Feedback (compact when empty)
     overview-section.tsx           # Project overview
-  /settings
-    project-settings-dialog.tsx    # Dialog for configuring project resources
   /ui                              # shadcn/ui primitives (button, card, badge, etc.)
-
-/contexts
-  project-config-context.tsx       # Project configuration context with localStorage
 
 /lib
   auth.ts                          # NextAuth authOptions configuration
+  project-config.ts                # Project configuration from environment variables
   utils.ts                         # cn() utility for Tailwind class merging
 
 /types
   next-auth.d.ts                   # NextAuth session type extensions
-  project-config.ts                # ProjectConfig interface and defaults
+```
+
+## Project Configuration System
+
+MiniVault uses a simple environment variable-based configuration system. All project settings are configured in `.env.local` (never committed to git).
+
+**Configuration Source**: `lib/project-config.ts`
+- **Function**: `getProjectConfig()` - Returns project configuration from environment variables
+- **Hook**: `useProjectConfig()` - React hook to access project configuration in components
+- **Interface**: `ProjectConfig` - TypeScript interface for project configuration
+
+**Key Configuration Variables** (all use `NEXT_PUBLIC_` prefix for client-side access):
+- `NEXT_PUBLIC_PROJECT_NAME` - Display name for the project
+- `NEXT_PUBLIC_PROJECT_DESCRIPTION` - Optional project description
+- `NEXT_PUBLIC_GITHUB_OWNER` & `NEXT_PUBLIC_GITHUB_REPO` - GitHub repository
+- `NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID` - Google Drive folder ID
+- `NEXT_PUBLIC_NOTION_DB_*` - Notion database IDs for each feature:
+  - `NEXT_PUBLIC_NOTION_DB_TASKS` - Tasks/Projects database
+  - `NEXT_PUBLIC_NOTION_DB_GOALS` - Goals/Output metrics database
+  - `NEXT_PUBLIC_NOTION_DB_METRICS` - Input metrics database
+  - `NEXT_PUBLIC_NOTION_DB_MILESTONES` - Milestones database
+  - `NEXT_PUBLIC_NOTION_DB_DOCUMENTS` - Documentation links database
+  - `NEXT_PUBLIC_NOTION_DB_FEEDBACK` - User feedback database
+- `NEXT_PUBLIC_NOTION_PROJECT_PAGE_ID` - Optional Notion project page ID
+
+**Usage in Components**:
+```typescript
+import { useProjectConfig } from "@/lib/project-config"
+
+export function MyComponent() {
+  const config = useProjectConfig()
+
+  // Access configuration
+  console.log(config.projectName)
+  console.log(config.notionDatabases.tasks)
+  console.log(config.github?.owner)
+}
 ```
 
 ## Environment Variables
 
-The `.env.local` file contains OAuth credentials and API keys. **Critical**: Ensure all environment variables are properly formatted as single-line key-value pairs.
+The `.env.local` file contains OAuth credentials, API keys, and all project configuration. **Critical**: Ensure all environment variables are properly formatted as single-line key-value pairs.
 
 **Known issue**: Multi-line JSON objects (like `GOOGLE_SERVICE_ACCOUNT_KEY`) must be escaped and formatted as a single line. The environment parser cannot handle unescaped newlines or multi-line values.
 
 Required variables (see `.env.example`):
-- `NEXTAUTH_URL`, `NEXTAUTH_SECRET`
-- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-- `GITHUB_ID`, `GITHUB_SECRET`
-- `NOTION_TOKEN`, `NOTION_DATABASE_ID`
-
-## Project Configuration System
-
-The app uses a localStorage-based configuration system to store user preferences:
-
-**Context Provider**: `contexts/project-config-context.tsx`
-- **Storage Key**: `minivault_project_config`
-- **Interface**: Defined in `types/project-config.ts`
-- **Fields**:
-  - `projectName`: String - Display name for the project
-  - `github`: Object - `owner` and `repo` for GitHub integration
-  - `googleDrive`: Object - `folderId` and optional `folderName`
-  - `notion`: Object - `databaseId` and optional `databaseName`
-  - `notionDatabases`: Object - Database IDs for tasks, goals, metrics, documents, feedback, etc.
-  - `projectPageId`: String - Notion project page ID
-  - `customLinks`: Array - Additional links
-  - `weeklyReports`: Array - Generated reports
-
-**Usage**:
-```typescript
-import { useProjectConfig } from "@/contexts/project-config-context"
-
-const { config, updateConfig, isLoaded } = useProjectConfig()
-
-// Update configuration
-updateConfig({
-  notionDatabases: {
-    goals: "abc123...",
-    metrics: "def456..."
-  }
-})
-```
-
-**Configuration UI**: `components/settings/project-settings-dialog.tsx`
-- Accessible from dashboard header
-- Form fields for all configuration options
-- Saves to localStorage on submit
-- Validates and formats IDs (e.g., Notion database ID cleanup)
+- **Authentication**: `NEXTAUTH_URL`, `NEXTAUTH_SECRET`
+- **OAuth Providers**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_ID`, `GITHUB_SECRET`
+- **Notion Integration**: `NOTION_TOKEN`
+- **Project Configuration**: All `NEXT_PUBLIC_*` variables listed above
 
 ## Key Development Notes
 

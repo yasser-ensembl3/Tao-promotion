@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DashboardSection } from "./dashboard-section"
-import { useProjectConfig } from "@/contexts/project-config-context"
+import { useProjectConfig } from "@/lib/project-config"
 import { ExternalLink, GitBranch, GitCommit, GitPullRequest, AlertCircle } from "lucide-react"
 
 interface GitHubData {
@@ -46,20 +46,20 @@ interface GitHubData {
 }
 
 export function GitHubSection() {
-  const { config } = useProjectConfig()
+  const config = useProjectConfig()
   const [data, setData] = useState<GitHubData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchGitHubData = useCallback(async () => {
-    if (!config.github?.owner || !config.github?.repo) return
+    if (!config?.github?.owner || !config?.github?.repo) return
 
     setLoading(true)
     setError(null)
 
     try {
       const response = await fetch(
-        `/api/github/repo?owner=${config.github.owner}&repo=${config.github.repo}`
+        `/api/github/repo?owner=${config?.github.owner}&repo=${config?.github.repo}`
       )
 
       if (!response.ok) {
@@ -75,13 +75,13 @@ export function GitHubSection() {
     } finally {
       setLoading(false)
     }
-  }, [config.github?.owner, config.github?.repo])
+  }, [config?.github?.owner, config?.github?.repo])
 
   useEffect(() => {
-    if (config.github?.owner && config.github?.repo) {
+    if (config?.github?.owner && config?.github?.repo) {
       fetchGitHubData()
     }
-  }, [config.github?.owner, config.github?.repo, fetchGitHubData])
+  }, [config?.github?.owner, config?.github?.repo, fetchGitHubData])
 
   const keyMetrics = data ? (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -121,7 +121,7 @@ export function GitHubSection() {
         </div>
       )}
 
-      {!config.github?.owner || !config.github?.repo ? (
+      {!config?.github?.owner || !config?.github?.repo ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-4">
             No GitHub repository configured. Click &quot;Project Settings&quot; to configure your repository.

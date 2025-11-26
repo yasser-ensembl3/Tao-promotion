@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DashboardSection } from "./dashboard-section"
-import { useProjectConfig } from "@/contexts/project-config-context"
+import { useProjectConfig } from "@/lib/project-config"
 import { ExternalLink, FileText, Folder, AlertCircle, File } from "lucide-react"
 
 interface DriveFile {
@@ -33,20 +33,20 @@ interface DriveData {
 }
 
 export function DriveSection() {
-  const { config } = useProjectConfig()
+  const config = useProjectConfig()
   const [data, setData] = useState<DriveData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchDriveData = useCallback(async () => {
-    if (!config.googleDrive?.folderId) return
+    if (!config?.googleDrive?.folderId) return
 
     setLoading(true)
     setError(null)
 
     try {
       const response = await fetch(
-        `/api/drive/files?folderId=${config.googleDrive.folderId}`
+        `/api/drive/files?folderId=${config?.googleDrive.folderId}`
       )
 
       if (!response.ok) {
@@ -62,13 +62,13 @@ export function DriveSection() {
     } finally {
       setLoading(false)
     }
-  }, [config.googleDrive?.folderId])
+  }, [config?.googleDrive?.folderId])
 
   useEffect(() => {
-    if (config.googleDrive?.folderId) {
+    if (config?.googleDrive?.folderId) {
       fetchDriveData()
     }
-  }, [config.googleDrive?.folderId, fetchDriveData])
+  }, [config?.googleDrive?.folderId, fetchDriveData])
 
   const keyMetrics = data ? (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -123,7 +123,7 @@ export function DriveSection() {
         </div>
       )}
 
-      {!config.googleDrive?.folderId ? (
+      {!config?.googleDrive?.folderId ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-4">
             No Google Drive folder configured. Click &quot;Project Settings&quot; to configure your folder.
