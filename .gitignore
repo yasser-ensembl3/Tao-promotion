@@ -37,3 +37,4 @@ next-env.d.ts
 
 # feedback data files
 data/feedbacks/*.txt
+vercel-env.txt
