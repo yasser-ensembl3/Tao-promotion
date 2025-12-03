@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Star, Plus, ExternalLink, Calendar, Sparkles } from "lucide-react"
+import { Plus, ExternalLink, Calendar, Sparkles } from "lucide-react"
 
 interface Essential {
   id: string
@@ -150,7 +150,7 @@ export function EssentialsSection() {
   if (!essentialsDbId) {
     return (
       <DashboardSection
-        icon={<Star className="h-5 w-5" />}
+        icon="⭐"
         title="Essentials"
         description="Configure NEXT_PUBLIC_NOTION_DB_ESSENTIALS to use this section"
       />
@@ -160,7 +160,7 @@ export function EssentialsSection() {
   if (loading) {
     return (
       <DashboardSection
-        icon={<Star className="h-5 w-5" />}
+        icon="⭐"
         title="Essentials"
         description="Loading essential items..."
       />
@@ -444,7 +444,7 @@ export function EssentialsSection() {
 
   return (
     <DashboardSection
-      icon={<Star className="h-5 w-5 text-yellow-500" />}
+      icon="⭐"
       title="Essentials"
       description="Most important tools, milestones, and resources for this project"
       keyMetrics={keyMetrics}
