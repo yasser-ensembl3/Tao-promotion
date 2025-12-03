@@ -15,12 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    let databaseId = searchParams.get("databaseId")
-
-    // Fallback to env variable if not provided in query
-    if (!databaseId) {
-      databaseId = process.env.NOTION_DATABASE_ID || null
-    }
+    const databaseId = searchParams.get("databaseId")
 
     if (!databaseId) {
       return NextResponse.json(
@@ -31,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const cleanDatabaseId = databaseId.replace(/-/g, "")
 
-    // Query Notion database using fetch API
+    // Query Notion database
     const response = await fetch(
       `https://api.notion.com/v1/databases/${cleanDatabaseId}/query`,
       {
@@ -43,6 +38,7 @@ export async function GET(request: NextRequest) {
         },
         body: JSON.stringify({
           page_size: 100,
+          // Don't sort - will cause error if property doesn't exist
         }),
         cache: 'no-store',
       }
@@ -56,7 +52,7 @@ export async function GET(request: NextRequest) {
     const data = await response.json()
 
     // Parse and format the results
-    const tasks = data.results.map((page: any) => {
+    const essentials = data.results.map((page: any) => {
       const properties = page.properties
 
       // Get title from different possible property names
@@ -69,16 +65,11 @@ export async function GET(request: NextRequest) {
       const descriptionProp = properties.Description || properties.description
       const description = descriptionProp?.rich_text?.[0]?.plain_text || null
 
-      // Get assignee
-      const assigneeProp = properties.Assignée || properties.Assignee || properties.Assigned || properties.assignee
-      const assignee = assigneeProp?.rich_text?.[0]?.plain_text || null
-
-      // Get status
-      const statusProp = properties.Status || properties.status
-      const status = statusProp?.status?.name ||
-                    statusProp?.select?.name ||
-                    statusProp?.rich_text?.[0]?.plain_text ||
-                    "No Status"
+      // Get type
+      const typeProp = properties.Type || properties.type
+      const type = typeProp?.select?.name ||
+                  typeProp?.rich_text?.[0]?.plain_text ||
+                  "Resource"
 
       // Get priority
       const priorityProp = properties.Priority || properties.priority
@@ -86,38 +77,31 @@ export async function GET(request: NextRequest) {
                       priorityProp?.rich_text?.[0]?.plain_text ||
                       null
 
-      // Get tags (can be multi_select or rich_text)
-      const tagsProp = properties.Tags || properties.tags
-      let tags: string[] = []
-      if (tagsProp?.multi_select) {
-        tags = tagsProp.multi_select.map((tag: any) => tag.name)
-      } else if (tagsProp?.rich_text?.[0]?.plain_text) {
-        // Parse comma-separated tags from rich_text
-        const tagsText = tagsProp.rich_text[0].plain_text
-        tags = tagsText.split(",").map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0)
-      }
+      // Get URL (can be either url type or rich_text type)
+      const urlProp = properties.URL || properties.url || properties.Link || properties.link
+      const url = urlProp?.url || urlProp?.rich_text?.[0]?.plain_text || null
+
+      // Get date added
+      const dateAddedProp = properties["Date Added"] || properties["DateAdded"] || properties.dateAdded || properties.Date || properties.date
+      const dateAdded = dateAddedProp?.date?.start || page.created_time
 
       return {
         id: page.id,
         title,
         description,
-        assignee,
-        status,
-        dueDate: properties["Due Date"]?.date?.start ||
-                properties["DueDate"]?.date?.start ||
-                properties.dueDate?.date?.start ||
-                null,
+        type,
         priority,
-        tags,
-        url: page.url,
+        url,
+        dateAdded,
+        notionUrl: page.url,
       }
     })
 
-    return NextResponse.json({ tasks })
+    return NextResponse.json({ essentials })
   } catch (error: any) {
-    console.error("[Notion API] Error fetching tasks:", error)
+    console.error("[Notion Essentials API] Error fetching essentials:", error)
     return NextResponse.json(
-      { error: error.message || "Failed to fetch tasks from Notion" },
+      { error: error.message || "Failed to fetch essentials from Notion" },
       { status: 500 }
     )
   }
@@ -135,16 +119,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { databaseId, title, description, assignee, status, dueDate, priority, tags } = body
+    const { databaseId, title, description, type, priority, url } = body
 
-    console.log("[Notion Tasks API] POST request received:", {
+    console.log("[Notion Essentials API] POST request received:", {
       title,
       description,
-      assignee,
-      status,
-      dueDate,
+      type,
       priority,
-      tags
+      url
     })
 
     if (!databaseId || !title) {
@@ -167,25 +149,24 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    let hasAssigneeProperty = false
     let hasDescriptionProperty = false
-    let hasStatusProperty = false
-    let hasDueDateProperty = false
+    let hasTypeProperty = false
     let hasPriorityProperty = false
-    let hasTagsProperty = false
+    let hasUrlProperty = false
+    let hasDateAddedProperty = false
     let titlePropertyName = "Name"
     let descriptionPropertyName = "Description"
-    let assigneePropertyName = "Assignée"
-    let statusPropertyName = "Status"
-    let dueDatePropertyName = "Due Date"
+    let typePropertyName = "Type"
     let priorityPropertyName = "Priority"
-    let tagsPropertyName = "Tags"
+    let urlPropertyName = "URL"
+    let urlPropertyType = "url" // Default to url type
+    let dateAddedPropertyName = "Date Added"
 
     if (schemaResponse.ok) {
       const schemaData = await schemaResponse.json()
       const properties = schemaData.properties || {}
 
-      console.log("[Notion Tasks API] Database schema properties:", Object.keys(properties))
+      console.log("[Notion Essentials API] Database schema properties:", Object.keys(properties))
 
       // Find the title property
       if (properties["Title"]) titlePropertyName = "Title"
@@ -202,40 +183,13 @@ export async function POST(request: NextRequest) {
         hasDescriptionProperty = true
       }
 
-      // Find assignee property (check multiple names)
-      if (properties["Assignée"]) {
-        assigneePropertyName = "Assignée"
-        hasAssigneeProperty = true
-      } else if (properties["Assignee"]) {
-        assigneePropertyName = "Assignee"
-        hasAssigneeProperty = true
-      } else if (properties["Assigned"]) {
-        assigneePropertyName = "Assigned"
-        hasAssigneeProperty = true
-      } else if (properties["assignee"]) {
-        assigneePropertyName = "assignee"
-        hasAssigneeProperty = true
-      }
-
-      // Find status property
-      if (properties["Status"]) {
-        statusPropertyName = "Status"
-        hasStatusProperty = true
-      } else if (properties["status"]) {
-        statusPropertyName = "status"
-        hasStatusProperty = true
-      }
-
-      // Find due date property
-      if (properties["Due Date"]) {
-        dueDatePropertyName = "Due Date"
-        hasDueDateProperty = true
-      } else if (properties["DueDate"]) {
-        dueDatePropertyName = "DueDate"
-        hasDueDateProperty = true
-      } else if (properties["dueDate"]) {
-        dueDatePropertyName = "dueDate"
-        hasDueDateProperty = true
+      // Find type property
+      if (properties["Type"]) {
+        typePropertyName = "Type"
+        hasTypeProperty = true
+      } else if (properties["type"]) {
+        typePropertyName = "type"
+        hasTypeProperty = true
       }
 
       // Find priority property
@@ -247,22 +201,50 @@ export async function POST(request: NextRequest) {
         hasPriorityProperty = true
       }
 
-      // Find tags property
-      if (properties["Tags"]) {
-        tagsPropertyName = "Tags"
-        hasTagsProperty = true
-      } else if (properties["tags"]) {
-        tagsPropertyName = "tags"
-        hasTagsProperty = true
+      // Find URL property and its type
+      if (properties["URL"]) {
+        urlPropertyName = "URL"
+        urlPropertyType = properties["URL"]?.type || "url"
+        hasUrlProperty = true
+      } else if (properties["url"]) {
+        urlPropertyName = "url"
+        urlPropertyType = properties["url"]?.type || "url"
+        hasUrlProperty = true
+      } else if (properties["Link"]) {
+        urlPropertyName = "Link"
+        urlPropertyType = properties["Link"]?.type || "url"
+        hasUrlProperty = true
+      } else if (properties["link"]) {
+        urlPropertyName = "link"
+        urlPropertyType = properties["link"]?.type || "url"
+        hasUrlProperty = true
       }
 
-      console.log("[Notion Tasks API] Property checks:", {
+      // Find date added property
+      if (properties["Date Added"]) {
+        dateAddedPropertyName = "Date Added"
+        hasDateAddedProperty = true
+      } else if (properties["DateAdded"]) {
+        dateAddedPropertyName = "DateAdded"
+        hasDateAddedProperty = true
+      } else if (properties["dateAdded"]) {
+        dateAddedPropertyName = "dateAdded"
+        hasDateAddedProperty = true
+      } else if (properties["Date"]) {
+        dateAddedPropertyName = "Date"
+        hasDateAddedProperty = true
+      } else if (properties["date"]) {
+        dateAddedPropertyName = "date"
+        hasDateAddedProperty = true
+      }
+
+      console.log("[Notion Essentials API] Property checks:", {
         hasDescriptionProperty,
-        hasAssigneeProperty,
-        hasStatusProperty,
-        hasDueDateProperty,
+        hasTypeProperty,
         hasPriorityProperty,
-        hasTagsProperty
+        hasUrlProperty,
+        urlPropertyType,
+        hasDateAddedProperty
       })
     }
 
@@ -292,29 +274,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (assignee && hasAssigneeProperty) {
-      properties[assigneePropertyName] = {
+    if (type && hasTypeProperty) {
+      properties[typePropertyName] = {
         rich_text: [
           {
             type: "text",
             text: {
-              content: assignee,
+              content: type,
             },
           },
         ],
       }
     }
 
-    if (dueDate && hasDueDateProperty) {
-      properties[dueDatePropertyName] = {
-        date: {
-          start: dueDate,
-        },
-      }
-    }
-
     if (priority && hasPriorityProperty) {
-      // Always send as rich_text (text format)
       properties[priorityPropertyName] = {
         rich_text: [
           {
@@ -327,35 +300,36 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (status && hasStatusProperty) {
-      // Always send as rich_text (text format)
-      properties[statusPropertyName] = {
-        rich_text: [
-          {
-            type: "text",
-            text: {
-              content: status,
+    if (url && hasUrlProperty) {
+      // Use the URL property type we determined earlier
+      if (urlPropertyType === "rich_text") {
+        properties[urlPropertyName] = {
+          rich_text: [
+            {
+              type: "text",
+              text: {
+                content: url,
+              },
             },
-          },
-        ],
+          ],
+        }
+      } else {
+        // Default to url type
+        properties[urlPropertyName] = {
+          url: url,
+        }
       }
     }
 
-    if (tags && tags.length > 0 && hasTagsProperty) {
-      // Send tags as rich_text (comma-separated text)
-      properties[tagsPropertyName] = {
-        rich_text: [
-          {
-            type: "text",
-            text: {
-              content: tags.join(", "),
-            },
-          },
-        ],
+    if (hasDateAddedProperty) {
+      properties[dateAddedPropertyName] = {
+        date: {
+          start: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
+        },
       }
     }
 
-    // Create new task page
+    // Create new essential item page
     const createResponse = await fetch(
       `https://api.notion.com/v1/pages`,
       {
@@ -377,28 +351,28 @@ export async function POST(request: NextRequest) {
 
     if (!createResponse.ok) {
       const error = await createResponse.json()
-      console.error("[Notion Tasks API] Create error:", error)
-      console.error("[Notion Tasks API] Properties sent:", JSON.stringify(properties, null, 2))
+      console.error("[Notion Essentials API] Create error:", error)
+      console.error("[Notion Essentials API] Properties sent:", JSON.stringify(properties, null, 2))
       return NextResponse.json(
         {
-          error: error.message || "Failed to create task",
+          error: error.message || "Failed to create essential item",
           details: error,
         },
         { status: createResponse.status }
       )
     }
 
-    const newTask = await createResponse.json()
+    const newEssential = await createResponse.json()
 
     return NextResponse.json({
       success: true,
-      task: {
-        id: newTask.id,
-        url: newTask.url,
+      essential: {
+        id: newEssential.id,
+        url: newEssential.url,
       },
     })
   } catch (error) {
-    console.error("[Notion Tasks API] Error:", error)
+    console.error("[Notion Essentials API] Error:", error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

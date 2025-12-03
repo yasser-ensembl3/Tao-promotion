@@ -80,22 +80,18 @@ export async function GET(request: NextRequest) {
                     statusProp?.rich_text?.[0]?.plain_text ||
                     "No Status"
 
-      // Get priority
-      const priorityProp = properties.Priority || properties.priority
-      const priority = priorityProp?.select?.name ||
-                      priorityProp?.rich_text?.[0]?.plain_text ||
-                      null
+      // Get frequency (specific to recurring tasks)
+      const frequencyProp = properties.Frequency || properties.frequency || properties.Fréquence
+      const frequency = frequencyProp?.select?.name ||
+                       frequencyProp?.rich_text?.[0]?.plain_text ||
+                       null
 
-      // Get tags (can be multi_select or rich_text)
-      const tagsProp = properties.Tags || properties.tags
-      let tags: string[] = []
-      if (tagsProp?.multi_select) {
-        tags = tagsProp.multi_select.map((tag: any) => tag.name)
-      } else if (tagsProp?.rich_text?.[0]?.plain_text) {
-        // Parse comma-separated tags from rich_text
-        const tagsText = tagsProp.rich_text[0].plain_text
-        tags = tagsText.split(",").map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0)
-      }
+      // Get last completed date (specific to recurring tasks)
+      const lastCompletedProp = properties["Last Completed"] ||
+                               properties["LastCompleted"] ||
+                               properties.lastCompleted ||
+                               properties["Dernière Complétion"]
+      const lastCompleted = lastCompletedProp?.date?.start || null
 
       return {
         id: page.id,
@@ -107,17 +103,17 @@ export async function GET(request: NextRequest) {
                 properties["DueDate"]?.date?.start ||
                 properties.dueDate?.date?.start ||
                 null,
-        priority,
-        tags,
+        frequency,
+        lastCompleted,
         url: page.url,
       }
     })
 
     return NextResponse.json({ tasks })
   } catch (error: any) {
-    console.error("[Notion API] Error fetching tasks:", error)
+    console.error("[Notion API] Error fetching recurring tasks:", error)
     return NextResponse.json(
-      { error: error.message || "Failed to fetch tasks from Notion" },
+      { error: error.message || "Failed to fetch recurring tasks from Notion" },
       { status: 500 }
     )
   }
@@ -135,16 +131,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { databaseId, title, description, assignee, status, dueDate, priority, tags } = body
+    const { databaseId, title, description, assignee, status, dueDate, frequency } = body
 
-    console.log("[Notion Tasks API] POST request received:", {
+    console.log("[Notion Recurring Tasks API] POST request received:", {
       title,
       description,
       assignee,
       status,
       dueDate,
-      priority,
-      tags
+      frequency
     })
 
     if (!databaseId || !title) {
@@ -171,21 +166,19 @@ export async function POST(request: NextRequest) {
     let hasDescriptionProperty = false
     let hasStatusProperty = false
     let hasDueDateProperty = false
-    let hasPriorityProperty = false
-    let hasTagsProperty = false
+    let hasFrequencyProperty = false
     let titlePropertyName = "Name"
     let descriptionPropertyName = "Description"
     let assigneePropertyName = "Assignée"
     let statusPropertyName = "Status"
     let dueDatePropertyName = "Due Date"
-    let priorityPropertyName = "Priority"
-    let tagsPropertyName = "Tags"
+    let frequencyPropertyName = "Frequency"
 
     if (schemaResponse.ok) {
       const schemaData = await schemaResponse.json()
       const properties = schemaData.properties || {}
 
-      console.log("[Notion Tasks API] Database schema properties:", Object.keys(properties))
+      console.log("[Notion Recurring Tasks API] Database schema properties:", Object.keys(properties))
 
       // Find the title property
       if (properties["Title"]) titlePropertyName = "Title"
@@ -238,31 +231,24 @@ export async function POST(request: NextRequest) {
         hasDueDateProperty = true
       }
 
-      // Find priority property
-      if (properties["Priority"]) {
-        priorityPropertyName = "Priority"
-        hasPriorityProperty = true
-      } else if (properties["priority"]) {
-        priorityPropertyName = "priority"
-        hasPriorityProperty = true
+      // Find frequency property (specific to recurring tasks)
+      if (properties["Frequency"]) {
+        frequencyPropertyName = "Frequency"
+        hasFrequencyProperty = true
+      } else if (properties["frequency"]) {
+        frequencyPropertyName = "frequency"
+        hasFrequencyProperty = true
+      } else if (properties["Fréquence"]) {
+        frequencyPropertyName = "Fréquence"
+        hasFrequencyProperty = true
       }
 
-      // Find tags property
-      if (properties["Tags"]) {
-        tagsPropertyName = "Tags"
-        hasTagsProperty = true
-      } else if (properties["tags"]) {
-        tagsPropertyName = "tags"
-        hasTagsProperty = true
-      }
-
-      console.log("[Notion Tasks API] Property checks:", {
+      console.log("[Notion Recurring Tasks API] Property checks:", {
         hasDescriptionProperty,
         hasAssigneeProperty,
         hasStatusProperty,
         hasDueDateProperty,
-        hasPriorityProperty,
-        hasTagsProperty
+        hasFrequencyProperty
       })
     }
 
@@ -313,20 +299,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (priority && hasPriorityProperty) {
-      // Always send as rich_text (text format)
-      properties[priorityPropertyName] = {
-        rich_text: [
-          {
-            type: "text",
-            text: {
-              content: priority,
-            },
-          },
-        ],
-      }
-    }
-
     if (status && hasStatusProperty) {
       // Always send as rich_text (text format)
       properties[statusPropertyName] = {
@@ -341,14 +313,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (tags && tags.length > 0 && hasTagsProperty) {
-      // Send tags as rich_text (comma-separated text)
-      properties[tagsPropertyName] = {
+    if (frequency && hasFrequencyProperty) {
+      // Send frequency as rich_text
+      properties[frequencyPropertyName] = {
         rich_text: [
           {
             type: "text",
             text: {
-              content: tags.join(", "),
+              content: frequency,
             },
           },
         ],
@@ -377,11 +349,11 @@ export async function POST(request: NextRequest) {
 
     if (!createResponse.ok) {
       const error = await createResponse.json()
-      console.error("[Notion Tasks API] Create error:", error)
-      console.error("[Notion Tasks API] Properties sent:", JSON.stringify(properties, null, 2))
+      console.error("[Notion Recurring Tasks API] Create error:", error)
+      console.error("[Notion Recurring Tasks API] Properties sent:", JSON.stringify(properties, null, 2))
       return NextResponse.json(
         {
-          error: error.message || "Failed to create task",
+          error: error.message || "Failed to create recurring task",
           details: error,
         },
         { status: createResponse.status }
@@ -398,7 +370,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("[Notion Tasks API] Error:", error)
+    console.error("[Notion Recurring Tasks API] Error:", error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

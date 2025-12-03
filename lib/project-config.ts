@@ -15,6 +15,7 @@ export interface ProjectConfig {
   }
   notionDatabases: {
     tasks?: string
+    recurringTasks?: string
     goals?: string
     milestones?: string
     documents?: string
@@ -22,6 +23,7 @@ export interface ProjectConfig {
     metrics?: string
     sales?: string
     customMetrics?: string
+    essentials?: string
   }
   projectPageId?: string
 }
@@ -44,6 +46,7 @@ export function getProjectConfig(): ProjectConfig {
     } : undefined,
     notionDatabases: {
       tasks: process.env.NEXT_PUBLIC_NOTION_DB_TASKS,
+      recurringTasks: process.env.NEXT_PUBLIC_NOTION_DB_RECURRING_TASKS,
       goals: process.env.NEXT_PUBLIC_NOTION_DB_GOALS,
       milestones: process.env.NEXT_PUBLIC_NOTION_DB_MILESTONES,
       documents: process.env.NEXT_PUBLIC_NOTION_DB_DOCUMENTS,
@@ -51,6 +54,7 @@ export function getProjectConfig(): ProjectConfig {
       metrics: process.env.NEXT_PUBLIC_NOTION_DB_METRICS,
       sales: process.env.NEXT_PUBLIC_NOTION_DB_SALES,
       customMetrics: process.env.NEXT_PUBLIC_NOTION_DB_CUSTOM_METRICS,
+      essentials: process.env.NEXT_PUBLIC_NOTION_DB_ESSENTIALS,
     },
     projectPageId: process.env.NEXT_PUBLIC_NOTION_PROJECT_PAGE_ID,
   }

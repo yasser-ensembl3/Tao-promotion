@@ -59,19 +59,50 @@ export async function GET(request: NextRequest) {
         type = properties.Type.select.name
       } else if (properties.Type?.rich_text?.[0]?.plain_text) {
         type = properties.Type.rich_text[0].plain_text
-      } else if (properties.Category?.select?.name) {
-        type = properties.Category.select.name
-      } else if (properties.Category?.rich_text?.[0]?.plain_text) {
-        type = properties.Category.rich_text[0].plain_text
       }
 
-      return {
+      // Get category/section from either select or rich_text
+      let category = "other"
+      if (properties.Section?.select?.name) {
+        category = properties.Section.select.name
+      } else if (properties.Section?.rich_text?.[0]?.plain_text) {
+        category = properties.Section.rich_text[0].plain_text
+      } else if (properties.Category?.select?.name) {
+        category = properties.Category.select.name
+      } else if (properties.Category?.rich_text?.[0]?.plain_text) {
+        category = properties.Category.rich_text[0].plain_text
+      }
+
+      // Normalize category value to match frontend constants
+      const categoryMap: Record<string, string> = {
+        "Databases": "database",
+        "database": "database",
+        "Tools": "tool",
+        "tool": "tool",
+        "Apps & Websites": "website",
+        "Apps/Websites": "website",
+        "website": "website",
+        "Social Media": "social",
+        "social": "social",
+        "Documentation": "document",
+        "document": "document",
+        "Other Links": "other",
+        "Other": "other",
+        "other": "other"
+      }
+      category = categoryMap[category] || "other"
+
+      const doc = {
         id: page.id,
         title: properties.Name?.title?.[0]?.plain_text || properties.Title?.title?.[0]?.plain_text || "",
         url: properties.URL?.url || properties.Link?.url || "",
         description: properties.Description?.rich_text?.[0]?.plain_text || "",
         type: type,
+        category: category,
       }
+
+      console.log(`[Notion Documents API] Document "${doc.title}" - Section: ${category}`)
+      return doc
     })
 
     return NextResponse.json({
@@ -99,12 +130,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { databaseId, title, url, description, type } = body
+    const { databaseId, title, url, description, type, category } = body
 
     console.log("[Notion Documents API] POST request received:", {
       title,
       url,
-      type
+      type,
+      category
     })
 
     if (!databaseId || !title || !url) {
@@ -129,10 +161,13 @@ export async function POST(request: NextRequest) {
 
     let hasDescriptionProperty = false
     let hasTypeProperty = false
+    let hasCategoryProperty = false
     let titlePropertyName = "Name"
     let urlPropertyName = "URL"
     let typePropertyName = "Type"
     let typePropertyType = "select" // Default to select
+    let categoryPropertyName = "Section" // Prefer Section over Category
+    let categoryPropertyType = "select" // Default to select
 
     if (schemaResponse.ok) {
       const schemaData = await schemaResponse.json()
@@ -149,21 +184,32 @@ export async function POST(request: NextRequest) {
       else if (properties["URL"]) urlPropertyName = "URL"
 
       // Find the type property and its type
-      if (properties["Category"]) {
-        typePropertyName = "Category"
-        typePropertyType = properties["Category"]?.type || "select"
-      } else if (properties["Type"]) {
+      if (properties["Type"]) {
         typePropertyName = "Type"
         typePropertyType = properties["Type"]?.type || "select"
+        hasTypeProperty = true
+      }
+
+      // Find the category/section property and its type (prefer Section)
+      if (properties["Section"]) {
+        categoryPropertyName = "Section"
+        categoryPropertyType = properties["Section"]?.type || "select"
+        hasCategoryProperty = true
+      } else if (properties["Category"]) {
+        categoryPropertyName = "Category"
+        categoryPropertyType = properties["Category"]?.type || "select"
+        hasCategoryProperty = true
       }
 
       hasDescriptionProperty = !!properties["Description"]
-      hasTypeProperty = !!(properties["Type"] || properties["Category"])
 
-      console.log("[Notion Documents API] Type property info:", {
+      console.log("[Notion Documents API] Property info:", {
         typePropertyName,
         typePropertyType,
-        hasTypeProperty
+        hasTypeProperty,
+        categoryPropertyName,
+        categoryPropertyType,
+        hasCategoryProperty
       })
     }
 
@@ -217,6 +263,32 @@ export async function POST(request: NextRequest) {
           },
         }
       }
+    }
+
+    if (category && hasCategoryProperty) {
+      console.log(`[Notion Documents API] Setting ${categoryPropertyName} to: ${category}`)
+      // Use the category property type we determined earlier
+      if (categoryPropertyType === "rich_text") {
+        properties[categoryPropertyName] = {
+          rich_text: [
+            {
+              type: "text",
+              text: {
+                content: category,
+              },
+            },
+          ],
+        }
+      } else {
+        // Default to select
+        properties[categoryPropertyName] = {
+          select: {
+            name: category,
+          },
+        }
+      }
+    } else {
+      console.log(`[Notion Documents API] Cannot set category - hasCategoryProperty: ${hasCategoryProperty}, category: ${category}`)
     }
 
     // Create new document page
@@ -282,7 +354,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { documentId, title, url, description, type } = body
+    const { documentId, title, url, description, type, category } = body
 
     if (!documentId) {
       return NextResponse.json(
@@ -308,6 +380,8 @@ export async function PATCH(request: NextRequest) {
     let urlPropertyName = "URL"
     let typePropertyName = "Type"
     let typePropertyType = "select" // Default to select
+    let categoryPropertyName = "Section" // Prefer Section over Category
+    let categoryPropertyType = "select" // Default to select
 
     if (pageResponse.ok) {
       const pageData = await pageResponse.json()
@@ -332,12 +406,18 @@ export async function PATCH(request: NextRequest) {
           if (properties["Link"]) urlPropertyName = "Link"
 
           // Get type property name and type
-          if (properties["Category"]) {
-            typePropertyName = "Category"
-            typePropertyType = properties["Category"]?.type || "select"
-          } else if (properties["Type"]) {
+          if (properties["Type"]) {
             typePropertyName = "Type"
             typePropertyType = properties["Type"]?.type || "select"
+          }
+
+          // Get category/section property name and type (prefer Section)
+          if (properties["Section"]) {
+            categoryPropertyName = "Section"
+            categoryPropertyType = properties["Section"]?.type || "select"
+          } else if (properties["Category"]) {
+            categoryPropertyName = "Category"
+            categoryPropertyType = properties["Category"]?.type || "select"
           }
         }
       }
@@ -394,6 +474,28 @@ export async function PATCH(request: NextRequest) {
         updateProperties[typePropertyName] = {
           select: {
             name: type,
+          },
+        }
+      }
+    }
+
+    if (category) {
+      // Use the category property type we determined earlier
+      if (categoryPropertyType === "rich_text") {
+        updateProperties[categoryPropertyName] = {
+          rich_text: [
+            {
+              type: "text",
+              text: {
+                content: category,
+              },
+            },
+          ],
+        }
+      } else {
+        updateProperties[categoryPropertyName] = {
+          select: {
+            name: category,
           },
         }
       }

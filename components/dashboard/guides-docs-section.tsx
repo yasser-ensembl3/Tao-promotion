@@ -18,22 +18,32 @@ interface Link {
   description: string
   url: string
   type: string
+  category?: string
 }
 
 const LINK_TYPES = [
-  { value: "notion", label: "Notion" },
-  { value: "drive", label: "Google Drive" },
-  { value: "github", label: "GitHub" },
-  { value: "slack", label: "Slack" },
-  { value: "figma", label: "Figma" },
-  { value: "jira", label: "Jira" },
-  { value: "confluence", label: "Confluence" },
-  { value: "trello", label: "Trello" },
-  { value: "asana", label: "Asana" },
-  { value: "miro", label: "Miro" },
-  { value: "docs", label: "Documentation" },
-  { value: "api", label: "API" },
-  { value: "other", label: "Other" },
+  { value: "notion", label: "Notion", icon: "📓", color: "bg-gray-100 text-gray-700" },
+  { value: "drive", label: "Google Drive", icon: "📁", color: "bg-blue-100 text-blue-700" },
+  { value: "github", label: "GitHub", icon: "💻", color: "bg-purple-100 text-purple-700" },
+  { value: "slack", label: "Slack", icon: "💬", color: "bg-pink-100 text-pink-700" },
+  { value: "figma", label: "Figma", icon: "🎨", color: "bg-purple-100 text-purple-700" },
+  { value: "jira", label: "Jira", icon: "📋", color: "bg-blue-100 text-blue-700" },
+  { value: "confluence", label: "Confluence", icon: "📖", color: "bg-blue-100 text-blue-700" },
+  { value: "trello", label: "Trello", icon: "📊", color: "bg-blue-100 text-blue-700" },
+  { value: "asana", label: "Asana", icon: "✅", color: "bg-red-100 text-red-700" },
+  { value: "miro", label: "Miro", icon: "🖼️", color: "bg-yellow-100 text-yellow-700" },
+  { value: "docs", label: "Documentation", icon: "📄", color: "bg-green-100 text-green-700" },
+  { value: "api", label: "API", icon: "🔌", color: "bg-orange-100 text-orange-700" },
+  { value: "other", label: "Other", icon: "🔗", color: "bg-gray-100 text-gray-700" },
+]
+
+const CATEGORIES = [
+  { value: "database", label: "📊 Databases", emoji: "📊", notionLabel: "Databases" },
+  { value: "tool", label: "🛠️ Tools", emoji: "🛠️", notionLabel: "Tools" },
+  { value: "website", label: "🌐 Apps & Websites", emoji: "🌐", notionLabel: "Apps & Websites" },
+  { value: "social", label: "📱 Social Media", emoji: "📱", notionLabel: "Social Media" },
+  { value: "document", label: "📄 Documentation", emoji: "📄", notionLabel: "Documentation" },
+  { value: "other", label: "🔗 Other Links", emoji: "🔗", notionLabel: "Other Links" },
 ]
 
 export function GuidesDocsSection() {
@@ -44,12 +54,30 @@ export function GuidesDocsSection() {
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingConfigType, setEditingConfigType] = useState<"drive" | "notion" | "github" | null>(null)
+  const [selectedTab, setSelectedTab] = useState<string>("all")
   const [formData, setFormData] = useState({
     title: "",
     url: "",
     description: "",
-    type: "other"
+    type: "other",
+    category: "other"
   })
+
+  // Helper function to get link type info
+  const getLinkTypeInfo = (type: string) => {
+    const linkType = LINK_TYPES.find(t => t.label === type || t.value === type)
+    return linkType || { icon: "🔗", color: "bg-gray-100 text-gray-700", label: type }
+  }
+
+  // Helper function to extract domain from URL
+  const getDomainFromUrl = (url: string) => {
+    try {
+      const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`)
+      return urlObj.hostname.replace('www.', '')
+    } catch {
+      return url
+    }
+  }
 
   // Load custom links from Notion documents database
   useEffect(() => {
@@ -162,6 +190,11 @@ export function GuidesDocsSection() {
         const data = await response.json()
         const documents = data.documents || []
 
+        console.log(`[GuidesDocsSection] Loaded ${documents.length} documents from Notion`)
+        documents.forEach((doc: Link) => {
+          console.log(`  - "${doc.title}" → Category: ${doc.category}`)
+        })
+
         // Remove duplicates by URL (keep the first one)
         const uniqueDocuments: Link[] = []
         const seenUrls = new Set<string>()
@@ -195,7 +228,7 @@ export function GuidesDocsSection() {
   const handleOpenAdd = () => {
     setEditingId(null)
     setEditingConfigType(null)
-    setFormData({ title: "", url: "", description: "", type: "other" })
+    setFormData({ title: "", url: "", description: "", type: "other", category: "other" })
     setOpen(true)
   }
 
@@ -207,7 +240,8 @@ export function GuidesDocsSection() {
       title: link.title,
       url: link.url,
       description: link.description,
-      type: typeValue
+      type: typeValue,
+      category: link.category || "other"
     })
     setOpen(true)
   }
@@ -221,14 +255,16 @@ export function GuidesDocsSection() {
         title: config?.googleDrive?.folderName || "Google Drive Folder",
         url: config?.googleDrive?.folderId || "",
         description: "Main project documentation",
-        type: "drive"
+        type: "drive",
+        category: "document"
       })
     } else if (type === "github") {
       setFormData({
         title: "GitHub Repository",
         url: `${config?.github?.owner || ""}/${config?.github?.repo || ""}`,
         description: "Source code repository",
-        type: "github"
+        type: "github",
+        category: "tool"
       })
     }
 
@@ -241,6 +277,12 @@ export function GuidesDocsSection() {
     // Config links (Drive, GitHub) cannot be edited in new architecture, they come from .env
     // This function now only handles custom link documents
 
+    // Map category internal value to Notion-friendly label
+    const getCategoryNotionLabel = (value: string): string => {
+      const cat = CATEGORIES.find(c => c.value === value)
+      return cat?.notionLabel || "Other Links"
+    }
+
     // Handle custom links with Notion sync
     if (!config?.notionDatabases?.documents) {
       // Fallback to local state if no Notion database
@@ -248,7 +290,8 @@ export function GuidesDocsSection() {
         title: formData.title,
         description: formData.description,
         url: formData.url,
-        type: LINK_TYPES.find(t => t.value === formData.type)?.label || "Other"
+        type: LINK_TYPES.find(t => t.value === formData.type)?.label || "Other",
+        category: formData.category
       }
 
       if (editingId) {
@@ -263,7 +306,7 @@ export function GuidesDocsSection() {
         setCustomLinks([...customLinks, newLink])
       }
       setOpen(false)
-      setFormData({ title: "", url: "", description: "", type: "other" })
+      setFormData({ title: "", url: "", description: "", type: "other", category: "other" })
       setEditingId(null)
       return
     }
@@ -271,6 +314,9 @@ export function GuidesDocsSection() {
     // Sync with Notion
     try {
       const typeLabel = LINK_TYPES.find(t => t.value === formData.type)?.label || "Other"
+      const categoryLabel = getCategoryNotionLabel(formData.category)
+
+      console.log("[GuidesDocsSection] Saving link with category:", formData.category, "→", categoryLabel)
 
       if (editingId) {
         // Update existing document
@@ -285,6 +331,7 @@ export function GuidesDocsSection() {
             url: formData.url,
             description: formData.description,
             type: typeLabel,
+            category: categoryLabel,
           }),
         })
 
@@ -306,6 +353,7 @@ export function GuidesDocsSection() {
             url: formData.url,
             description: formData.description,
             type: typeLabel,
+            category: categoryLabel,
           }),
         })
 
@@ -322,7 +370,7 @@ export function GuidesDocsSection() {
     }
 
     setOpen(false)
-    setFormData({ title: "", url: "", description: "", type: "other" })
+    setFormData({ title: "", url: "", description: "", type: "other", category: "other" })
     setEditingId(null)
     setEditingConfigType(null)
   }
@@ -386,6 +434,24 @@ export function GuidesDocsSection() {
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  >
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
                   <Label htmlFor="type">Type</Label>
                   <Select
                     value={formData.type}
@@ -393,12 +459,22 @@ export function GuidesDocsSection() {
                     disabled={!!editingConfigType}
                   >
                     <SelectTrigger id="type">
-                      <SelectValue placeholder="Select link type" />
+                      {formData.type ? (
+                        <span className="flex items-center gap-2">
+                          <span>{LINK_TYPES.find(t => t.value === formData.type)?.icon}</span>
+                          <span>{LINK_TYPES.find(t => t.value === formData.type)?.label}</span>
+                        </span>
+                      ) : (
+                        <SelectValue placeholder="Select link type" />
+                      )}
                     </SelectTrigger>
                     <SelectContent>
                       {LINK_TYPES.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
-                          {type.label}
+                          <span className="flex items-center gap-2">
+                            <span>{type.icon}</span>
+                            <span>{type.label}</span>
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -453,171 +529,174 @@ export function GuidesDocsSection() {
             </DialogContent>
           </Dialog>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {config?.googleDrive?.folderId && config?.googleDrive.folderId.trim() !== "" && (
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-3">
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">Drive</Badge>
-                      <h5 className="font-semibold text-xs truncate">
-                        {config?.googleDrive?.folderName || "Google Drive"}
-                      </h5>
-                      <p className="text-[10px] text-muted-foreground line-clamp-2">Main project documentation</p>
+        {/* Group all links by category */}
+        {(() => {
+          // Collect all links (config + custom)
+          const allLinks: Link[] = []
+
+          if (config?.googleDrive?.folderId && config?.googleDrive.folderId.trim() !== "") {
+            allLinks.push({
+              id: "drive-config",
+              title: config?.googleDrive?.folderName || "Google Drive",
+              description: "Main project documentation",
+              url: `https://drive.google.com/drive/folders/${config?.googleDrive?.folderId}`,
+              type: "Drive",
+              category: "document"
+            })
+          }
+
+          if (config?.projectPageId) {
+            allLinks.push({
+              id: "notion-config",
+              title: "Project Page",
+              description: "Main project Notion page",
+              url: `https://notion.so/${config?.projectPageId?.replace(/-/g, "")}`,
+              type: "Notion",
+              category: "database"
+            })
+          }
+
+          if (config?.github?.owner && config?.github.owner.trim() !== "" && config?.github?.repo && config?.github.repo.trim() !== "") {
+            allLinks.push({
+              id: "github-config",
+              title: "GitHub Repo",
+              description: "Source code repository",
+              url: `https://github.com/${config?.github?.owner}/${config?.github?.repo}`,
+              type: "GitHub",
+              category: "tool"
+            })
+          }
+
+          // Add custom links
+          allLinks.push(...customLinks)
+
+          // Group by category
+          const linksByCategory = CATEGORIES.reduce((acc, cat) => {
+            acc[cat.value] = allLinks.filter(link => (link.category || "other") === cat.value)
+            return acc
+          }, {} as Record<string, Link[]>)
+
+          if (allLinks.length === 0) {
+            return (
+              <div className="p-8 border rounded-lg text-center border-dashed">
+                <p className="text-sm text-muted-foreground">
+                  No links added yet. Click &ldquo;Add Link&rdquo; to add your first resource link.
+                </p>
+              </div>
+            )
+          }
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {CATEGORIES.map((cat) => {
+                const categoryLinks = linksByCategory[cat.value] || []
+
+                return (
+                  <div key={cat.value} className="flex flex-col">
+                    {/* En-tête de colonne Kanban distinctif */}
+                    <div className={`rounded-lg p-3 mb-3 border-2 shadow-sm ${
+                      cat.value === 'database' ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 border-indigo-700 text-white' :
+                      cat.value === 'tool' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 border-emerald-700 text-white' :
+                      cat.value === 'website' ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 border-cyan-700 text-white' :
+                      cat.value === 'social' ? 'bg-gradient-to-r from-pink-500 to-pink-600 border-pink-700 text-white' :
+                      cat.value === 'document' ? 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-700 text-white' :
+                      'bg-gradient-to-r from-gray-500 to-gray-600 border-gray-700 text-white'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <h5 className="font-extrabold text-sm flex items-center gap-2 uppercase tracking-wide">
+                          <span className="text-xl drop-shadow">{cat.emoji}</span>
+                          <span className="truncate drop-shadow">{cat.label.replace(cat.emoji, "").trim()}</span>
+                        </h5>
+                        <Badge variant="secondary" className="text-xs font-bold bg-white text-gray-900 px-2 py-0.5 shadow-sm">
+                          {categoryLinks.length}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Colonne de cartes compacte */}
+                    <div className="space-y-2 min-h-[120px] flex-1">
+                      {categoryLinks.length > 0 ? (
+                        categoryLinks.map((link) => {
+                          const isConfigLink = link.id.endsWith("-config")
+                          const typeInfo = getLinkTypeInfo(link.type)
+                          const domain = getDomainFromUrl(link.url)
+
+                          return (
+                            <Card key={link.id} className="hover:shadow-md transition-all bg-white border">
+                              <CardContent className="p-2.5">
+                                <div className="space-y-1.5">
+                                  {/* Header compact avec icône et titre */}
+                                  <div className="flex items-start gap-2">
+                                    <div className={`text-xl flex-shrink-0 p-1 rounded ${typeInfo.color}`}>
+                                      {typeInfo.icon}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h5 className="font-bold text-[11px] truncate text-gray-900 leading-tight">{link.title}</h5>
+                                      <p className="text-[9px] text-blue-600 truncate font-mono mt-0.5">
+                                        {domain}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Actions compactes */}
+                                  <div className="flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      onClick={() => handleViewLink(link.url)}
+                                      className="h-6 px-2 text-[10px] flex-1 font-semibold"
+                                    >
+                                      <ExternalLink className="h-2.5 w-2.5 mr-0.5" />
+                                      Ouvrir
+                                    </Button>
+                                    {isConfigLink && link.id !== "notion-config" && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleEditConfigLink(link.id === "drive-config" ? "drive" : "github")}
+                                        className="h-6 px-1.5 text-[10px]"
+                                      >
+                                        ✏️
+                                      </Button>
+                                    )}
+                                    {!isConfigLink && (
+                                      <>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => handleOpenEdit(link)}
+                                          className="h-6 px-1.5 text-[10px]"
+                                        >
+                                          ✏️
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => handleDeleteLink(link.id)}
+                                          className="h-6 px-1.5 text-[10px] text-red-500 hover:text-red-700"
+                                        >
+                                          🗑️
+                                        </Button>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )
+                        })
+                      ) : (
+                        <div className="p-3 border border-dashed rounded text-center bg-muted/10">
+                          <p className="text-[10px] text-muted-foreground">Aucun lien</p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        window.open(
-                          `https://drive.google.com/drive/folders/${config?.googleDrive?.folderId}`,
-                          "_blank"
-                        )
-                      }
-                      className="h-6 px-2 text-[10px] flex-1"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEditConfigLink("drive")}
-                      className="h-6 px-2 text-[10px]"
-                    >
-                      ✏️
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {config?.projectPageId && (
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-3">
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">Notion</Badge>
-                      <h5 className="font-semibold text-xs truncate">Project Page</h5>
-                      <p className="text-[10px] text-muted-foreground line-clamp-2">Main project Notion page</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        window.open(
-                          `https://notion.so/${config?.projectPageId?.replace(/-/g, "")}`,
-                          "_blank"
-                        )
-                      }
-                      className="h-6 px-2 text-[10px] flex-1"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {config?.github?.owner && config?.github.owner.trim() !== "" && config?.github?.repo && config?.github.repo.trim() !== "" && (
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-3">
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">GitHub</Badge>
-                      <h5 className="font-semibold text-xs truncate">GitHub Repo</h5>
-                      <p className="text-[10px] text-muted-foreground line-clamp-2">Source code repository</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        window.open(
-                          `https://github.com/${config?.github?.owner}/${config?.github?.repo}`,
-                          "_blank"
-                        )
-                      }
-                      className="h-6 px-2 text-[10px] flex-1"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEditConfigLink("github")}
-                      className="h-6 px-2 text-[10px]"
-                    >
-                      ✏️
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {customLinks.map((link) => (
-            <Card key={link.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-3">
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <Badge variant="secondary" className="text-[9px] h-4 px-1.5 mb-1">{link.type}</Badge>
-                      <h5 className="font-semibold text-xs truncate">{link.title}</h5>
-                      <p className="text-[10px] text-muted-foreground line-clamp-2">{link.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleViewLink(link.url)}
-                      className="h-6 px-2 text-[10px] flex-1"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleOpenEdit(link)}
-                      className="h-6 px-2 text-[10px]"
-                    >
-                      ✏️
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDeleteLink(link.id)}
-                      className="h-6 px-2 text-[10px] text-red-500 hover:text-red-700"
-                    >
-                      🗑️
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {customLinks.length === 0 &&
-           !(config?.googleDrive?.folderId && config?.googleDrive.folderId.trim() !== "") &&
-           !(config?.github?.owner && config?.github.owner.trim() !== "" && config?.github?.repo && config?.github.repo.trim() !== "") &&
-           !config?.projectPageId && (
-            <div className="p-8 border rounded-lg text-center border-dashed">
-              <p className="text-sm text-muted-foreground">
-                No links added yet. Click &ldquo;Add Link&rdquo; to add your first resource link.
-              </p>
+                )
+              })}
             </div>
-          )}
-        </div>
+          )
+        })()}
       </div>
     </div>
   )

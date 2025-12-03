@@ -18,6 +18,7 @@ import { useProjectConfig } from "@/lib/project-config"
 interface Task {
   id: string
   title: string
+  description: string | null
   assignee: string | null
   status: string
   dueDate: string | null
@@ -26,7 +27,7 @@ interface Task {
   url: string
 }
 
-export function ProjectTrackingSection() {
+export function OneTimeTasksSection() {
   const config = useProjectConfig()
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(false)
@@ -35,6 +36,7 @@ export function ProjectTrackingSection() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     title: "",
+    description: "",
     assignee: "",
     dueDate: "",
     priority: "",
@@ -132,6 +134,7 @@ export function ProjectTrackingSection() {
         body: JSON.stringify({
           databaseId: config?.notionDatabases.tasks,
           title: formData.title,
+          description: formData.description || undefined,
           assignee: formData.assignee || undefined,
           status: formData.status || undefined,
           dueDate: formData.dueDate || undefined,
@@ -144,6 +147,7 @@ export function ProjectTrackingSection() {
         setOpen(false)
         setFormData({
           title: "",
+          description: "",
           assignee: "",
           dueDate: "",
           priority: "",
@@ -206,7 +210,7 @@ export function ProjectTrackingSection() {
     <div className="space-y-6">
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h4 className="font-semibold">Recent Tasks from Notion</h4>
+          <h4 className="font-semibold">One-Time Tasks from Notion</h4>
           <div className="flex gap-2">
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
@@ -216,9 +220,9 @@ export function ProjectTrackingSection() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[525px]">
                 <DialogHeader>
-                  <DialogTitle>Create New Task</DialogTitle>
+                  <DialogTitle>Create New One-Time Task</DialogTitle>
                   <DialogDescription>
-                    Add a new task to your Notion tasks database.
+                    Add a new one-time task to your Notion database.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -232,7 +236,16 @@ export function ProjectTrackingSection() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="assignee">Assignée</Label>
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      placeholder="Task description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="assignee">Assignee</Label>
                     <Input
                       id="assignee"
                       placeholder="e.g., John Doe"
@@ -309,7 +322,7 @@ export function ProjectTrackingSection() {
                     <Label htmlFor="tags">Tags</Label>
                     <Input
                       id="tags"
-                      placeholder="e.g., frontend, bug, urgent"
+                      placeholder="ex: frontend, bug, urgent"
                       value={formData.tags}
                       onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                     />
@@ -346,7 +359,7 @@ export function ProjectTrackingSection() {
             <p className="text-sm text-muted-foreground">
               {config?.notionDatabases?.tasks
                 ? "No tasks available. Click 'New Task' to create your first task."
-                : "Tasks database not configured. Configure it in Project Settings."}
+                : "Tasks database not configured. Configure it in project settings."}
             </p>
           </div>
         ) : (
@@ -386,6 +399,10 @@ export function ProjectTrackingSection() {
                         <CardContent className="p-4">
                           <div className="space-y-2">
                             <CardTitle className="text-sm font-semibold">{task.title}</CardTitle>
+
+                            {task.description && (
+                              <p className="text-xs text-muted-foreground">{task.description}</p>
+                            )}
 
                             {(task.assignee || task.dueDate) && (
                               <CardDescription className="text-xs space-y-1">
@@ -444,9 +461,9 @@ export function ProjectTrackingSection() {
 
   return (
     <DashboardSection
-      title="Projects & Tasks"
-      description="Monitor tasks and sub-projects from Notion with filters and tags"
-      icon="📋"
+      title="One-Time Tasks"
+      description="Track one-time tasks and projects from Notion with filters and tags"
+      icon="✅"
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
       defaultOpen={true}
