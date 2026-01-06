@@ -24,6 +24,8 @@ export interface ProjectConfig {
     sales?: string
     customMetrics?: string
     essentials?: string
+    salesTracking?: string
+    webAnalytics?: string
   }
   projectPageId?: string
 }
@@ -55,6 +57,8 @@ export function getProjectConfig(): ProjectConfig {
       sales: process.env.NEXT_PUBLIC_NOTION_DB_SALES,
       customMetrics: process.env.NEXT_PUBLIC_NOTION_DB_CUSTOM_METRICS,
       essentials: process.env.NEXT_PUBLIC_NOTION_DB_ESSENTIALS,
+      salesTracking: process.env.NEXT_PUBLIC_NOTION_DB_SALES_TRACKING,
+      webAnalytics: process.env.NEXT_PUBLIC_NOTION_DB_WEB_ANALYTICS,
     },
     projectPageId: process.env.NEXT_PUBLIC_NOTION_PROJECT_PAGE_ID,
   }

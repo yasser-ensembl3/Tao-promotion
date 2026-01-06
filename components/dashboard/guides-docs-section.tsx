@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DashboardSection } from "./dashboard-section"
 import { useProjectConfig } from "@/lib/project-config"
 import { ExternalLink } from "lucide-react"
+import { DocumentPreviewModal, canPreviewUrl } from "./document-preview-modal"
 
 interface Link {
   id: string
@@ -62,6 +63,10 @@ export function GuidesDocsSection() {
     type: "other",
     category: "other"
   })
+
+  // Preview modal state
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewLink, setPreviewLink] = useState<Link | null>(null)
 
   // Helper function to get link type info
   const getLinkTypeInfo = (type: string) => {
@@ -375,9 +380,16 @@ export function GuidesDocsSection() {
     setEditingConfigType(null)
   }
 
-  const handleViewLink = (url: string) => {
-    if (url && url !== "Not configured") {
-      window.open(url, "_blank")
+  const handleViewLink = (link: Link) => {
+    if (!link.url || link.url === "Not configured") return
+
+    // Check if URL can be previewed in-app (Notion, Google Docs, Drive)
+    if (canPreviewUrl(link.url)) {
+      setPreviewLink(link)
+      setPreviewOpen(true)
+    } else {
+      // Open externally for other URLs
+      window.open(link.url, "_blank")
     }
   }
 
@@ -622,39 +634,30 @@ export function GuidesDocsSection() {
                           const domain = getDomainFromUrl(link.url)
 
                           return (
-                            <Card key={link.id} className="hover:shadow-md transition-all bg-white border">
+                            <Card
+                              key={link.id}
+                              className="hover:shadow-md transition-all bg-white border cursor-pointer hover:ring-2 hover:ring-primary/50"
+                              onClick={() => handleViewLink(link)}
+                            >
                               <CardContent className="p-2.5">
-                                <div className="space-y-1.5">
-                                  {/* Header compact avec icône et titre */}
-                                  <div className="flex items-start gap-2">
-                                    <div className={`text-xl flex-shrink-0 p-1 rounded ${typeInfo.color}`}>
-                                      {typeInfo.icon}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <h5 className="font-bold text-[11px] truncate text-gray-900 leading-tight">{link.title}</h5>
-                                      <p className="text-[9px] text-blue-600 truncate font-mono mt-0.5">
-                                        {domain}
-                                      </p>
-                                    </div>
+                                <div className="flex items-start gap-2">
+                                  <div className={`text-xl flex-shrink-0 p-1 rounded ${typeInfo.color}`}>
+                                    {typeInfo.icon}
                                   </div>
-
-                                  {/* Actions compactes */}
-                                  <div className="flex gap-1">
-                                    <Button
-                                      size="sm"
-                                      variant="default"
-                                      onClick={() => handleViewLink(link.url)}
-                                      className="h-6 px-2 text-[10px] flex-1 font-semibold"
-                                    >
-                                      <ExternalLink className="h-2.5 w-2.5 mr-0.5" />
-                                      Ouvrir
-                                    </Button>
+                                  <div className="flex-1 min-w-0">
+                                    <h5 className="font-bold text-[11px] truncate text-gray-900 leading-tight">{link.title}</h5>
+                                    <p className="text-[9px] text-blue-600 truncate font-mono mt-0.5">
+                                      {domain}
+                                    </p>
+                                  </div>
+                                  {/* Boutons d'action */}
+                                  <div className="flex gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                                     {isConfigLink && link.id !== "notion-config" && (
                                       <Button
                                         size="sm"
-                                        variant="outline"
+                                        variant="ghost"
                                         onClick={() => handleEditConfigLink(link.id === "drive-config" ? "drive" : "github")}
-                                        className="h-6 px-1.5 text-[10px]"
+                                        className="h-6 w-6 p-0 text-[10px]"
                                       >
                                         ✏️
                                       </Button>
@@ -663,17 +666,17 @@ export function GuidesDocsSection() {
                                       <>
                                         <Button
                                           size="sm"
-                                          variant="outline"
+                                          variant="ghost"
                                           onClick={() => handleOpenEdit(link)}
-                                          className="h-6 px-1.5 text-[10px]"
+                                          className="h-6 w-6 p-0 text-[10px]"
                                         >
                                           ✏️
                                         </Button>
                                         <Button
                                           size="sm"
-                                          variant="outline"
+                                          variant="ghost"
                                           onClick={() => handleDeleteLink(link.id)}
-                                          className="h-6 px-1.5 text-[10px] text-red-500 hover:text-red-700"
+                                          className="h-6 w-6 p-0 text-[10px] text-red-500 hover:text-red-700"
                                         >
                                           🗑️
                                         </Button>
@@ -702,12 +705,28 @@ export function GuidesDocsSection() {
   )
 
   return (
-    <DashboardSection
-      title="Guides and Docs"
-      description="Important links and references for project resources"
-      icon="📚"
-      detailedContent={detailedContent}
-      defaultOpen={true}
-    />
+    <>
+      <DashboardSection
+        title="Guides and Docs"
+        description="Important links and references for project resources"
+        icon="📚"
+        detailedContent={detailedContent}
+        defaultOpen={true}
+      />
+
+      {/* Preview Modal for Notion, Google Docs, Drive */}
+      {previewLink && (
+        <DocumentPreviewModal
+          isOpen={previewOpen}
+          onClose={() => {
+            setPreviewOpen(false)
+            setPreviewLink(null)
+          }}
+          title={previewLink.title}
+          url={previewLink.url}
+          type={previewLink.type}
+        />
+      )}
+    </>
   )
 }

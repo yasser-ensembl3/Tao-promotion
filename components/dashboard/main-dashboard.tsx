@@ -13,6 +13,8 @@ import { ReportsSection } from "./reports-section"
 import { UserFeedbackSection } from "./user-feedback-section"
 import { GuidesDocsSection } from "./guides-docs-section"
 import { EssentialsSection } from "./essentials-section"
+import { SalesTrackingSection } from "./sales-tracking-section"
+import { WebAnalyticsSection } from "./web-analytics-section"
 
 export function MainDashboard() {
   const { data: session, status } = useSession()
@@ -55,6 +57,8 @@ export function MainDashboard() {
         <DashboardHeader />
         <div className="space-y-4 sm:space-y-6">
           <GoalsMetricsSection />
+          <SalesTrackingSection />
+          <WebAnalyticsSection />
           <MetricsSection />
           <EssentialsSection />
           <GuidesDocsSection />

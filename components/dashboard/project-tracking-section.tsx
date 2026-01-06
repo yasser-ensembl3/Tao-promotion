@@ -50,7 +50,6 @@ export function OneTimeTasksSection() {
     { value: "In Progress", label: "In Progress", color: "bg-blue-100 text-blue-700 border-blue-300" },
     { value: "Review", label: "Review", color: "bg-purple-100 text-purple-700 border-purple-300" },
     { value: "Done", label: "Done", color: "bg-green-100 text-green-700 border-green-300" },
-    { value: "Completed", label: "Completed", color: "bg-green-100 text-green-700 border-green-300" },
   ]
 
   // Priority colors
@@ -164,25 +163,32 @@ export function OneTimeTasksSection() {
     }
   }
 
-  // Get in-progress tasks for quick view
-  const inProgressTasks = tasks.filter(t => t.status === "In Progress")
+  // Get active tasks (To Do + In Progress) for quick view
+  const activeTasks = tasks.filter(t => t.status === "To Do" || t.status === "In Progress")
 
-  const keyMetrics = inProgressTasks.length > 0 ? (
+  const getActiveTaskColor = (status: string) => {
+    return status === "In Progress"
+      ? "bg-blue-50 border-blue-200 text-blue-900"
+      : "bg-slate-50 border-slate-200 text-slate-900"
+  }
+
+  const keyMetrics = activeTasks.length > 0 ? (
     <div className="space-y-2">
       <div className="text-xs font-medium text-muted-foreground mb-2">
-        {inProgressTasks.length} task{inProgressTasks.length !== 1 ? 's' : ''} in progress
+        {activeTasks.length} active task{activeTasks.length !== 1 ? 's' : ''}
       </div>
-      {inProgressTasks.slice(0, 5).map((task) => (
-        <div key={task.id} className="p-2 rounded-lg bg-blue-50 border border-blue-200">
+      {activeTasks.slice(0, 5).map((task) => (
+        <div key={task.id} className={`p-2 rounded-lg border ${getActiveTaskColor(task.status)}`}>
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-xs text-blue-900 truncate">{task.title}</div>
+              <div className="font-medium text-xs truncate">{task.title}</div>
               <div className="flex gap-2 mt-1">
+                <span className="text-[10px] text-muted-foreground">{task.status}</span>
                 {task.assignee && (
-                  <span className="text-[10px] text-blue-600">👤 {task.assignee}</span>
+                  <span className="text-[10px] text-muted-foreground">👤 {task.assignee}</span>
                 )}
                 {task.dueDate && (
-                  <span className="text-[10px] text-blue-600">📅 {new Date(task.dueDate).toLocaleDateString()}</span>
+                  <span className="text-[10px] text-muted-foreground">📅 {new Date(task.dueDate).toLocaleDateString()}</span>
                 )}
               </div>
             </div>
@@ -194,15 +200,15 @@ export function OneTimeTasksSection() {
           </div>
         </div>
       ))}
-      {inProgressTasks.length > 5 && (
+      {activeTasks.length > 5 && (
         <div className="text-[10px] text-muted-foreground text-center">
-          +{inProgressTasks.length - 5} more
+          +{activeTasks.length - 5} more
         </div>
       )}
     </div>
   ) : (
     <div className="text-center p-4 rounded-lg bg-muted/50 border border-dashed">
-      <p className="text-xs text-muted-foreground">No tasks in progress</p>
+      <p className="text-xs text-muted-foreground">No active tasks</p>
     </div>
   )
 
@@ -314,7 +320,6 @@ export function OneTimeTasksSection() {
                         <SelectItem value="In Progress">In Progress</SelectItem>
                         <SelectItem value="Review">Review</SelectItem>
                         <SelectItem value="Done">Done</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
