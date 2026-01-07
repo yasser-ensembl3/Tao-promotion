@@ -34,6 +34,13 @@ interface SalesRecord {
   "Returning Customer Rate": number | null
 }
 
+interface OrderRecord {
+  id: string
+  url: string
+  createdTime: string
+  [key: string]: string | number | null
+}
+
 type MetricKey = "Total Sales" | "Net Sales" | "Paid Orders" | "Average Order Value" | "Returning Customer Rate"
 
 const METRIC_CONFIGS: Record<MetricKey, { label: string; format: (v: number) => string; color: string }> = {
@@ -47,8 +54,11 @@ const METRIC_CONFIGS: Record<MetricKey, { label: string; format: (v: number) => 
 export function SalesTrackingSection() {
   const config = useProjectConfig()
   const [records, setRecords] = useState<SalesRecord[]>([])
+  const [orders, setOrders] = useState<OrderRecord[]>([])
   const [loading, setLoading] = useState(false)
+  const [ordersLoading, setOrdersLoading] = useState(false)
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("Total Sales")
+  const [showAllOrders, setShowAllOrders] = useState(false)
 
   const fetchSalesData = async () => {
     if (!config?.notionDatabases?.salesTracking) {
@@ -73,11 +83,37 @@ export function SalesTrackingSection() {
     }
   }
 
+  const fetchOrders = async () => {
+    if (!config?.notionDatabases?.orders) {
+      return
+    }
+
+    setOrdersLoading(true)
+    try {
+      const response = await fetch(
+        `/api/notion/sales?databaseId=${config.notionDatabases.orders}`
+      )
+      if (response.ok) {
+        const data = await response.json()
+        setOrders(data.orders || [])
+      } else {
+        console.error("Failed to fetch orders from Notion")
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error)
+    } finally {
+      setOrdersLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (config?.notionDatabases?.salesTracking) {
       fetchSalesData()
     }
-  }, [config?.notionDatabases?.salesTracking])
+    if (config?.notionDatabases?.orders) {
+      fetchOrders()
+    }
+  }, [config?.notionDatabases?.salesTracking, config?.notionDatabases?.orders])
 
   // Get most recent record for summary
   const latestRecord = records.length > 0 ? records[0] : null
@@ -231,30 +267,112 @@ export function SalesTrackingSection() {
             </div>
           )}
 
-          {/* Recent periods table */}
-          <div className="mt-4">
-            <p className="text-xs font-medium text-muted-foreground mb-2">Recent Periods</p>
-            <div className="space-y-1">
-              {records.slice(0, 5).map((record) => (
-                <div
-                  key={record.id}
-                  className="flex items-center justify-between text-xs p-2 rounded bg-muted/30"
-                >
-                  <span className="text-muted-foreground">{record.Period}</span>
-                  <span className="font-semibold">
-                    {METRIC_CONFIGS[selectedMetric].format(getMetricValue(record, selectedMetric))}
-                  </span>
-                  <a
-                    href={record.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    View
-                  </a>
-                </div>
-              ))}
+          {/* Orders section */}
+          <div className="mt-6 border-t pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h5 className="text-sm font-semibold">Orders</h5>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={fetchOrders}
+                disabled={ordersLoading || !config?.notionDatabases?.orders}
+                className="h-6 px-2 text-xs"
+              >
+                {ordersLoading ? "..." : "Refresh"}
+              </Button>
             </div>
+
+            {!config?.notionDatabases?.orders ? (
+              <div className="p-4 border rounded-lg text-center border-dashed bg-muted/30">
+                <p className="text-xs text-muted-foreground">
+                  Orders database not configured. Add NEXT_PUBLIC_NOTION_DB_ORDERS to your environment.
+                </p>
+              </div>
+            ) : ordersLoading ? (
+              <div className="p-4 border rounded-lg text-center">
+                <p className="text-xs text-muted-foreground">Loading orders...</p>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="p-4 border rounded-lg text-center border-dashed">
+                <p className="text-xs text-muted-foreground">No orders yet</p>
+              </div>
+            ) : (
+              <>
+                {/* Key metrics summary */}
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  <div className="p-2 bg-emerald-50 dark:bg-emerald-950 rounded-lg text-center">
+                    <p className="text-lg font-bold text-emerald-600">{orders.length}</p>
+                    <p className="text-[10px] text-muted-foreground">Orders</p>
+                  </div>
+                  <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded-lg text-center">
+                    <p className="text-lg font-bold text-blue-600">
+                      {orders.reduce((sum, o) => sum + (Number(o["Items"]) || 0), 0)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Items</p>
+                  </div>
+                  <div className="p-2 bg-purple-50 dark:bg-purple-950 rounded-lg text-center">
+                    <p className="text-lg font-bold text-purple-600">
+                      ${orders.reduce((sum, o) => sum + (Number(o["Total $"]) || 0), 0).toFixed(0)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Revenue</p>
+                  </div>
+                  <div className="p-2 bg-amber-50 dark:bg-amber-950 rounded-lg text-center">
+                    <p className="text-lg font-bold text-amber-600">
+                      {orders.filter(o => o["Fulfillment"] === "Fulfilled").length}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Fulfilled</p>
+                  </div>
+                </div>
+
+                {/* Orders list */}
+                <div className="space-y-1">
+                  {(showAllOrders ? orders : orders.slice(0, 5)).map((order) => (
+                    <a
+                      key={order.id}
+                      href={order.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 text-xs p-2 rounded bg-muted/30 hover:bg-muted/50 transition-colors"
+                    >
+                      <span className="font-mono text-muted-foreground w-14 flex-shrink-0">
+                        {order["Order"] || "-"}
+                      </span>
+                      <span className="font-medium flex-1 truncate">
+                        {order["Customer"] || "-"}
+                      </span>
+                      <span className="text-muted-foreground w-20 text-right flex-shrink-0">
+                        {order["Date"] || "-"}
+                      </span>
+                      <span className="text-blue-600 w-8 text-center flex-shrink-0">
+                        {order["Items"] || 0}x
+                      </span>
+                      <span className="font-semibold text-emerald-600 w-12 text-right flex-shrink-0">
+                        ${Number(order["Total $"] || 0).toFixed(0)}
+                      </span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${
+                        order["Fulfillment"] === "Fulfilled"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                      }`}>
+                        {order["Fulfillment"] === "Fulfilled" ? "Fulfilled" : "Pending"}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+
+                {/* Show all button */}
+                {orders.length > 5 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAllOrders(!showAllOrders)}
+                    className="w-full mt-2 text-xs"
+                  >
+                    {showAllOrders ? "Show less" : `Show all ${orders.length} orders`}
+                  </Button>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}

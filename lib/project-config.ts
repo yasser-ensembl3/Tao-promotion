@@ -22,6 +22,7 @@ export interface ProjectConfig {
     feedback?: string
     metrics?: string
     sales?: string
+    orders?: string
     customMetrics?: string
     essentials?: string
     salesTracking?: string
@@ -55,6 +56,7 @@ export function getProjectConfig(): ProjectConfig {
       feedback: process.env.NEXT_PUBLIC_NOTION_DB_FEEDBACK,
       metrics: process.env.NEXT_PUBLIC_NOTION_DB_METRICS,
       sales: process.env.NEXT_PUBLIC_NOTION_DB_SALES,
+      orders: process.env.NEXT_PUBLIC_NOTION_DB_ORDERS,
       customMetrics: process.env.NEXT_PUBLIC_NOTION_DB_CUSTOM_METRICS,
       essentials: process.env.NEXT_PUBLIC_NOTION_DB_ESSENTIALS,
       salesTracking: process.env.NEXT_PUBLIC_NOTION_DB_SALES_TRACKING,
