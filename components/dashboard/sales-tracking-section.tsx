@@ -95,7 +95,13 @@ export function SalesTrackingSection() {
       )
       if (response.ok) {
         const data = await response.json()
-        setOrders(data.orders || [])
+        // Sort orders by date descending (most recent first)
+        const sortedOrders = (data.orders || []).sort((a: OrderRecord, b: OrderRecord) => {
+          const dateA = a["Date"] ? new Date(a["Date"] as string).getTime() : 0
+          const dateB = b["Date"] ? new Date(b["Date"] as string).getTime() : 0
+          return dateB - dateA
+        })
+        setOrders(sortedOrders)
       } else {
         console.error("Failed to fetch orders from Notion")
       }
@@ -350,11 +356,20 @@ export function SalesTrackingSection() {
                         ${Number(order["Total $"] || 0).toFixed(0)}
                       </span>
                       <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${
-                        order["Fulfillment"] === "Fulfilled"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                        order["Payment"] === "Paid"
+                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                          : order["Payment"] === "Refunded"
+                          ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
                           : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
                       }`}>
-                        {order["Fulfillment"] === "Fulfilled" ? "Fulfilled" : "Pending"}
+                        {order["Payment"] || "Pending"}
+                      </span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${
+                        order["Fulfillment"] === "Fulfilled"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                          : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
+                      }`}>
+                        {order["Fulfillment"] || "Unfulfilled"}
                       </span>
                     </a>
                   ))}
