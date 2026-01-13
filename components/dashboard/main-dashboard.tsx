@@ -15,6 +15,7 @@ import { GuidesDocsSection } from "./guides-docs-section"
 import { EssentialsSection } from "./essentials-section"
 import { SalesTrackingSection } from "./sales-tracking-section"
 import { WebAnalyticsSection } from "./web-analytics-section"
+import { OrdersSection } from "./orders-section"
 
 export function MainDashboard() {
   const { data: session, status } = useSession()
@@ -56,6 +57,7 @@ export function MainDashboard() {
       <div className="container mx-auto py-3 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-6">
         <DashboardHeader />
         <div className="space-y-4 sm:space-y-6">
+          <OrdersSection />
           <GoalsMetricsSection />
           <SalesTrackingSection />
           <WebAnalyticsSection />
