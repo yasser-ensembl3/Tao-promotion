@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 
 export function KnowledgeSection() {
   const keyMetrics = (
@@ -62,7 +62,7 @@ export function KnowledgeSection() {
   )
 
   return (
-    <DashboardSection
+    <PageSection
       title="Knowledge Base"
       description="Create clear instructions and context for all collaborators"
       icon="📚"

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
 import { ExternalLink } from "lucide-react"
 import { DocumentPreviewModal, canPreviewUrl } from "./document-preview-modal"
@@ -706,12 +706,11 @@ export function GuidesDocsSection() {
 
   return (
     <>
-      <DashboardSection
+      <PageSection
         title="Guides and Docs"
         description="Important links and references for project resources"
         icon="📚"
         detailedContent={detailedContent}
-        defaultOpen={true}
       />
 
       {/* Preview Modal for Notion, Google Docs, Drive */}

@@ -12,7 +12,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon, RepeatIcon } from "lucide-react"
 import { format } from "date-fns"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
 
 interface RecurringTask {
@@ -427,13 +427,12 @@ export function RecurringTasksSection() {
   )
 
   return (
-    <DashboardSection
+    <PageSection
       title="Recurring Tasks"
       description="Track recurring tasks from Notion (daily, weekly, monthly, quarterly)"
       icon="🔄"
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
-      defaultOpen={false}
     />
   )
 }

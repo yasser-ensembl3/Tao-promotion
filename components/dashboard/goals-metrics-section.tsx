@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
@@ -398,7 +398,7 @@ export function GoalsMetricsSection() {
 
   return (
     <>
-      <DashboardSection
+      <PageSection
         title="Goals"
         description="Track output metrics and key results"
         icon="🎯"

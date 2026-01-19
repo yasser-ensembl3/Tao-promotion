@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
 import { ExternalLink, FileText, Folder, AlertCircle, File } from "lucide-react"
 
@@ -208,7 +208,7 @@ export function DriveSection() {
   )
 
   return (
-    <DashboardSection
+    <PageSection
       title="Google Drive"
       description="Browse and access project documentation from Google Drive"
       icon="📁"

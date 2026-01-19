@@ -19,7 +19,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
 
 interface Milestone {
@@ -455,12 +455,11 @@ export function OverviewSection() {
 
   return (
     <>
-      <DashboardSection
+      <PageSection
         title="Overview"
         description="High-level summary of your project status and activity"
         icon="📊"
         detailedContent={detailedContent}
-        defaultOpen={true}
       />
 
       <Dialog open={isAddingMilestone} onOpenChange={setIsAddingMilestone}>

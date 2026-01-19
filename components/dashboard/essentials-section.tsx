@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useProjectConfig } from "@/lib/project-config"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
@@ -149,7 +149,7 @@ export function EssentialsSection() {
 
   if (!essentialsDbId) {
     return (
-      <DashboardSection
+      <PageSection
         icon="⭐"
         title="Essentials"
         description="Configure NEXT_PUBLIC_NOTION_DB_ESSENTIALS to use this section"
@@ -159,7 +159,7 @@ export function EssentialsSection() {
 
   if (loading) {
     return (
-      <DashboardSection
+      <PageSection
         icon="⭐"
         title="Essentials"
         description="Loading essential items..."
@@ -443,7 +443,7 @@ export function EssentialsSection() {
   )
 
   return (
-    <DashboardSection
+    <PageSection
       icon="⭐"
       title="Essentials"
       description="Most important tools, milestones, and resources for this project"

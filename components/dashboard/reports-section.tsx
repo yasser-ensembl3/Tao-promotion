@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react"
 
@@ -256,7 +256,7 @@ export function ReportsSection() {
   }
 
   return (
-    <DashboardSection
+    <PageSection
       title="Weekly Reports"
       description="Generate comprehensive weekly summaries with AI"
       icon="📊"

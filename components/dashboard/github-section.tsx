@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
 import { ExternalLink, GitBranch, GitCommit, GitPullRequest, AlertCircle } from "lucide-react"
 
@@ -290,7 +290,7 @@ export function GitHubSection() {
   )
 
   return (
-    <DashboardSection
+    <PageSection
       title="GitHub Repository"
       description="Track repository activity, commits, issues, and pull requests"
       icon="🐙"

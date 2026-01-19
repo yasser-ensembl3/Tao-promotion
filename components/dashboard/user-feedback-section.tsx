@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -395,7 +395,7 @@ export function UserFeedbackSection() {
 
   return (
     <>
-      <DashboardSection
+      <PageSection
         title="User Feedback"
         description="Monitor and respond to user feedback and requests"
         icon="💬"

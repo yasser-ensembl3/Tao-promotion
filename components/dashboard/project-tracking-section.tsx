@@ -12,7 +12,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
 
 interface Task {
@@ -465,13 +465,12 @@ export function OneTimeTasksSection() {
   )
 
   return (
-    <DashboardSection
+    <PageSection
       title="One-Time Tasks"
       description="Track one-time tasks and projects from Notion with filters and tags"
       icon="✅"
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
-      defaultOpen={true}
     />
   )
 }

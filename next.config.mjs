@@ -1,7 +1,11 @@
+import nextra from 'nextra'
+
+const withNextra = nextra({
+  contentDirBasePath: '/docs'
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // App Router is stable in Next.js 14
-
   // Performance optimizations for development
   swcMinify: true,
 
@@ -16,4 +20,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+export default withNextra(nextConfig)

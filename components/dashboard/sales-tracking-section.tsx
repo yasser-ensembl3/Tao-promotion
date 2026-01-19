@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
 import { Button } from "@/components/ui/button"
 import {
@@ -395,7 +395,7 @@ export function SalesTrackingSection() {
   )
 
   return (
-    <DashboardSection
+    <PageSection
       title="Sales"
       description="Shopify sales and order tracking"
       icon="💰"

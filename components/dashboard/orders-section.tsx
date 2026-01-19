@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DashboardSection } from "./dashboard-section"
+import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
 import { Button } from "@/components/ui/button"
 
@@ -295,13 +295,12 @@ export function OrdersSection() {
   )
 
   return (
-    <DashboardSection
+    <PageSection
       title="Orders"
       description="Track order fulfillment status"
       icon="📦"
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
-      defaultOpen={unfulfilledOrders.length > 0}
     />
   )
 }
