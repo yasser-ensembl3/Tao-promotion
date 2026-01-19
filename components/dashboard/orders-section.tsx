@@ -16,7 +16,7 @@ export function OrdersSection() {
   const config = useProjectConfig()
   const [orders, setOrders] = useState<OrderRecord[]>([])
   const [loading, setLoading] = useState(false)
-  const [showAllUnfulfilled, setShowAllUnfulfilled] = useState(false)
+  const [showAllUnfulfilled, setShowAllUnfulfilled] = useState(true)
   const [showFulfilled, setShowFulfilled] = useState(false)
 
   const fetchOrders = async () => {
@@ -249,14 +249,9 @@ export function OrdersSection() {
 
               {showFulfilled && (
                 <div className="p-3 space-y-2 border-t">
-                  {fulfilledOrders.slice(0, 10).map((order) => (
+                  {fulfilledOrders.map((order) => (
                     <OrderRow key={order.id} order={order} />
                   ))}
-                  {fulfilledOrders.length > 10 && (
-                    <p className="text-center text-xs text-muted-foreground py-2">
-                      Showing 10 of {fulfilledOrders.length} fulfilled orders
-                    </p>
-                  )}
                 </div>
               )}
             </div>
