@@ -1,14 +1,7 @@
-import { useMDXComponents as getDocsMDXComponents } from 'nextra-theme-docs'
+import type { MDXComponents } from 'mdx/types'
 
-// Export as a regular function to avoid hook rules in server components
-export function getMDXComponents(components?: Record<string, unknown>) {
+export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
-    ...getDocsMDXComponents(),
     ...components,
   }
-}
-
-// Keep the hook version for client components that need it
-export function useMDXComponents(components?: Record<string, unknown>) {
-  return getMDXComponents(components)
 }
