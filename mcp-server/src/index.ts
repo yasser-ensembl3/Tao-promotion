@@ -369,6 +369,124 @@ const tools: Tool[] = [
     },
   },
 
+  // ============ SALES TRACKING ============
+  {
+    name: "list_sales",
+    description: "List sales tracking entries by period",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", description: "Max results (default: 12)" },
+      },
+    },
+  },
+  {
+    name: "create_sale",
+    description: "Create a new sales tracking entry for a period",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        period: { type: "string", description: "Period name, e.g., 'Jan 1-31 2026' (required)" },
+        grossSales: { type: "number", description: "Gross sales amount" },
+        discounts: { type: "number", description: "Discounts amount" },
+        returns: { type: "number", description: "Returns amount" },
+        netSales: { type: "number", description: "Net sales amount" },
+        shipping: { type: "number", description: "Shipping charges" },
+        taxes: { type: "number", description: "Taxes amount" },
+        totalSales: { type: "number", description: "Total sales amount" },
+        paidOrders: { type: "number", description: "Number of paid orders" },
+        ordersFulfilled: { type: "number", description: "Number of fulfilled orders" },
+        avgOrderValue: { type: "number", description: "Average order value" },
+        returningCustomerRate: { type: "number", description: "Returning customer rate (%)" },
+      },
+      required: ["period"],
+    },
+  },
+  {
+    name: "update_sale",
+    description: "Update an existing sales tracking entry",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        pageId: { type: "string", description: "Notion page ID (required)" },
+        grossSales: { type: "number" },
+        discounts: { type: "number" },
+        returns: { type: "number" },
+        netSales: { type: "number" },
+        shipping: { type: "number" },
+        taxes: { type: "number" },
+        totalSales: { type: "number" },
+        paidOrders: { type: "number" },
+        ordersFulfilled: { type: "number" },
+        avgOrderValue: { type: "number" },
+        returningCustomerRate: { type: "number" },
+      },
+      required: ["pageId"],
+    },
+  },
+
+  // ============ WEB ANALYTICS ============
+  {
+    name: "list_web_analytics",
+    description: "List web analytics entries by period",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", description: "Max results (default: 12)" },
+      },
+    },
+  },
+  {
+    name: "create_web_analytics",
+    description: "Create a new web analytics entry for a period (e.g., 'Jan 1-31 2026')",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        period: { type: "string", description: "Period name, e.g., 'Jan 1-31 2026' (required)" },
+        sessions: { type: "number", description: "Total sessions" },
+        desktop: { type: "number", description: "Desktop sessions" },
+        mobile: { type: "number", description: "Mobile sessions" },
+        direct: { type: "number", description: "Direct traffic" },
+        linkedin: { type: "number", description: "LinkedIn traffic" },
+        twitter: { type: "number", description: "Twitter/X traffic" },
+        facebook: { type: "number", description: "Facebook traffic" },
+        google: { type: "number", description: "Google traffic" },
+        other: { type: "number", description: "Other traffic sources" },
+        addToCartRate: { type: "number", description: "Add to cart rate (%)" },
+        checkoutRate: { type: "number", description: "Checkout rate (%)" },
+        checkoutReachedRate: { type: "number", description: "Checkout reached rate (%)" },
+        conversionRate: { type: "number", description: "Conversion rate (%)" },
+        topPage: { type: "string", description: "Top page, e.g., 'Homepage: 150'" },
+      },
+      required: ["period"],
+    },
+  },
+  {
+    name: "update_web_analytics",
+    description: "Update an existing web analytics entry",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        pageId: { type: "string", description: "Notion page ID (required)" },
+        sessions: { type: "number" },
+        desktop: { type: "number" },
+        mobile: { type: "number" },
+        direct: { type: "number" },
+        linkedin: { type: "number" },
+        twitter: { type: "number" },
+        facebook: { type: "number" },
+        google: { type: "number" },
+        other: { type: "number" },
+        addToCartRate: { type: "number" },
+        checkoutRate: { type: "number" },
+        checkoutReachedRate: { type: "number" },
+        conversionRate: { type: "number" },
+        topPage: { type: "string" },
+      },
+      required: ["pageId"],
+    },
+  },
+
   // ============ RAW NOTION ACCESS ============
   {
     name: "notion_query",
@@ -756,6 +874,120 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       // PROJECT STATUS
       case "get_project_status": {
         result = await getProjectStatus();
+        break;
+      }
+
+      // SALES TRACKING
+      case "list_sales": {
+        const pages = await listFromDatabase(DATABASES.sales, undefined, (args?.limit as number) || 12);
+        if (pages.length === 0) {
+          result = "No sales entries found.";
+        } else {
+          result = pages.map((page, i) => {
+            const p = page.properties;
+            return `${i + 1}. ${getTextFromProperty(p.Period)}
+   Gross: $${getTextFromProperty(p["Gross Sales"])} | Net: $${getTextFromProperty(p["Net Sales"])} | Total: $${getTextFromProperty(p["Total Sales"])}
+   Orders: ${getTextFromProperty(p["Paid Orders"])} paid | ${getTextFromProperty(p["Orders Fulfilled"])} fulfilled
+   Avg Order: $${getTextFromProperty(p["Average Order Value"] || p["Avg Order Value"])}
+   ID: ${page.id}`;
+          }).join("\n\n");
+        }
+        break;
+      }
+      case "create_sale": {
+        const props: any = {
+          Period: { title: [{ text: { content: args?.period as string } }] },
+        };
+        if (args?.grossSales !== undefined) props["Gross Sales"] = { number: args.grossSales as number };
+        if (args?.discounts !== undefined) props.Discounts = { number: args.discounts as number };
+        if (args?.returns !== undefined) props.Returns = { number: args.returns as number };
+        if (args?.netSales !== undefined) props["Net Sales"] = { number: args.netSales as number };
+        if (args?.shipping !== undefined) props.Shipping = { number: args.shipping as number };
+        if (args?.taxes !== undefined) props.Taxes = { number: args.taxes as number };
+        if (args?.totalSales !== undefined) props["Total Sales"] = { number: args.totalSales as number };
+        if (args?.paidOrders !== undefined) props["Paid Orders"] = { number: args.paidOrders as number };
+        if (args?.ordersFulfilled !== undefined) props["Orders Fulfilled"] = { number: args.ordersFulfilled as number };
+        if (args?.avgOrderValue !== undefined) props["Average Order Value"] = { number: args.avgOrderValue as number };
+        if (args?.returningCustomerRate !== undefined) props["Returning Customer Rate"] = { number: args.returningCustomerRate as number };
+        const page = await createInDatabase(DATABASES.sales, props);
+        result = `✅ Sales entry created for: ${args?.period}\nID: ${(page as any).id}\nURL: ${(page as any).url}`;
+        break;
+      }
+      case "update_sale": {
+        const props: any = {};
+        if (args?.grossSales !== undefined) props["Gross Sales"] = { number: args.grossSales as number };
+        if (args?.discounts !== undefined) props.Discounts = { number: args.discounts as number };
+        if (args?.returns !== undefined) props.Returns = { number: args.returns as number };
+        if (args?.netSales !== undefined) props["Net Sales"] = { number: args.netSales as number };
+        if (args?.shipping !== undefined) props.Shipping = { number: args.shipping as number };
+        if (args?.taxes !== undefined) props.Taxes = { number: args.taxes as number };
+        if (args?.totalSales !== undefined) props["Total Sales"] = { number: args.totalSales as number };
+        if (args?.paidOrders !== undefined) props["Paid Orders"] = { number: args.paidOrders as number };
+        if (args?.ordersFulfilled !== undefined) props["Orders Fulfilled"] = { number: args.ordersFulfilled as number };
+        if (args?.avgOrderValue !== undefined) props["Average Order Value"] = { number: args.avgOrderValue as number };
+        if (args?.returningCustomerRate !== undefined) props["Returning Customer Rate"] = { number: args.returningCustomerRate as number };
+        await updatePage(args?.pageId as string, props);
+        result = `✅ Sales entry updated: ${args?.pageId}`;
+        break;
+      }
+
+      // WEB ANALYTICS
+      case "list_web_analytics": {
+        const pages = await listFromDatabase(DATABASES.webAnalytics, undefined, (args?.limit as number) || 12);
+        if (pages.length === 0) {
+          result = "No web analytics entries found.";
+        } else {
+          result = pages.map((page, i) => {
+            const p = page.properties;
+            return `${i + 1}. ${getTextFromProperty(p.Period)}
+   Sessions: ${getTextFromProperty(p.Sessions)} | Desktop: ${getTextFromProperty(p.Desktop)} | Mobile: ${getTextFromProperty(p.Mobile)}
+   Sources: Direct ${getTextFromProperty(p.Direct)} | LinkedIn ${getTextFromProperty(p.LinkedIn)} | Twitter ${getTextFromProperty(p.Twitter)} | Facebook ${getTextFromProperty(p.Facebook)} | Google ${getTextFromProperty(p.Google)}
+   Conversion: ${getTextFromProperty(p["Conversion Rate"])}% | Add to Cart: ${getTextFromProperty(p["Add to Cart Rate"])}%
+   ID: ${page.id}`;
+          }).join("\n\n");
+        }
+        break;
+      }
+      case "create_web_analytics": {
+        const props: any = {
+          Period: { title: [{ text: { content: args?.period as string } }] },
+        };
+        if (args?.sessions !== undefined) props.Sessions = { number: args.sessions as number };
+        if (args?.desktop !== undefined) props.Desktop = { number: args.desktop as number };
+        if (args?.mobile !== undefined) props.Mobile = { number: args.mobile as number };
+        if (args?.direct !== undefined) props.Direct = { number: args.direct as number };
+        if (args?.linkedin !== undefined) props.LinkedIn = { number: args.linkedin as number };
+        if (args?.twitter !== undefined) props.Twitter = { number: args.twitter as number };
+        if (args?.facebook !== undefined) props.Facebook = { number: args.facebook as number };
+        if (args?.google !== undefined) props.Google = { number: args.google as number };
+        if (args?.other !== undefined) props.Other = { number: args.other as number };
+        if (args?.addToCartRate !== undefined) props["Add to Cart Rate"] = { number: args.addToCartRate as number };
+        if (args?.checkoutRate !== undefined) props["Checkout Rate"] = { number: args.checkoutRate as number };
+        if (args?.checkoutReachedRate !== undefined) props["Checkout Reached Rate"] = { number: args.checkoutReachedRate as number };
+        if (args?.conversionRate !== undefined) props["Conversion Rate"] = { number: args.conversionRate as number };
+        if (args?.topPage) props["Top Page"] = { rich_text: [{ text: { content: args.topPage as string } }] };
+        const page = await createInDatabase(DATABASES.webAnalytics, props);
+        result = `✅ Web Analytics created for: ${args?.period}\nID: ${(page as any).id}\nURL: ${(page as any).url}`;
+        break;
+      }
+      case "update_web_analytics": {
+        const props: any = {};
+        if (args?.sessions !== undefined) props.Sessions = { number: args.sessions as number };
+        if (args?.desktop !== undefined) props.Desktop = { number: args.desktop as number };
+        if (args?.mobile !== undefined) props.Mobile = { number: args.mobile as number };
+        if (args?.direct !== undefined) props.Direct = { number: args.direct as number };
+        if (args?.linkedin !== undefined) props.LinkedIn = { number: args.linkedin as number };
+        if (args?.twitter !== undefined) props.Twitter = { number: args.twitter as number };
+        if (args?.facebook !== undefined) props.Facebook = { number: args.facebook as number };
+        if (args?.google !== undefined) props.Google = { number: args.google as number };
+        if (args?.other !== undefined) props.Other = { number: args.other as number };
+        if (args?.addToCartRate !== undefined) props["Add to Cart Rate"] = { number: args.addToCartRate as number };
+        if (args?.checkoutRate !== undefined) props["Checkout Rate"] = { number: args.checkoutRate as number };
+        if (args?.checkoutReachedRate !== undefined) props["Checkout Reached Rate"] = { number: args.checkoutReachedRate as number };
+        if (args?.conversionRate !== undefined) props["Conversion Rate"] = { number: args.conversionRate as number };
+        if (args?.topPage) props["Top Page"] = { rich_text: [{ text: { content: args.topPage as string } }] };
+        await updatePage(args?.pageId as string, props);
+        result = `✅ Web Analytics updated: ${args?.pageId}`;
         break;
       }
 
