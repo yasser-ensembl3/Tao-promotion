@@ -150,10 +150,10 @@ export function RecurringTasksSection() {
         await fetchTasks()
       } else {
         const errorData = await response.json()
-        setError(errorData.error || "Failed to create recurring task")
+        alert(errorData.error || "Failed to create recurring task")
       }
     } catch (err: any) {
-      setError(err.message)
+      alert(err.message || "Failed to create recurring task")
     }
   }
 

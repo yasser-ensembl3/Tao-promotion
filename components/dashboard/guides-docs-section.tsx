@@ -255,29 +255,7 @@ export function GuidesDocsSection() {
 
     // Handle custom links with Notion sync
     if (!config?.notionDatabases?.documents) {
-      // Fallback to local state if no Notion database
-      const linkData = {
-        title: formData.title,
-        description: formData.description,
-        url: formData.url,
-        type: LINK_TYPES.find(t => t.value === formData.type)?.label || "Other",
-        category: formData.category
-      }
-
-      if (editingId) {
-        setCustomLinks(customLinks.map(link =>
-          link.id === editingId ? { ...link, ...linkData } : link
-        ))
-      } else {
-        const newLink: Link = {
-          id: Date.now().toString(),
-          ...linkData
-        }
-        setCustomLinks([...customLinks, newLink])
-      }
-      setOpen(false)
-      setFormData({ title: "", url: "", description: "", type: "other", category: "other" })
-      setEditingId(null)
+      alert("Documents database not configured in Project Settings")
       return
     }
 
@@ -362,8 +340,7 @@ export function GuidesDocsSection() {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce lien ?")) return
 
     if (!config?.notionDatabases?.documents) {
-      // Fallback to local state
-      setCustomLinks(customLinks.filter(link => link.id !== linkId))
+      alert("Documents database not configured in Project Settings")
       return
     }
 

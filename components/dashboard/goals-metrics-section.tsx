@@ -52,6 +52,7 @@ export function GoalsMetricsSection() {
     value: "",
     date: new Date().toISOString().split('T')[0]
   })
+  const [submitting, setSubmitting] = useState(false)
 
   // Gère le clic sur une carte : toggle si même carte, sinon ouvrir
   const handleCardClick = (metricType: string) => {
@@ -118,7 +119,7 @@ export function GoalsMetricsSection() {
     // Normalize the metric type before sending
     const normalizedType = normalizeMetricType(metricForm.type)
 
-    setLoading(true)
+    setSubmitting(true)
     try {
       const response = await fetch("/api/notion/metrics", {
         method: "POST",
@@ -145,7 +146,7 @@ export function GoalsMetricsSection() {
       console.error("Error creating goal:", error)
       alert(`Error creating goal: ${error.message}`)
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 

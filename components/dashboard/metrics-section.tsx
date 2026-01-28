@@ -52,6 +52,7 @@ export function MetricsSection() {
     value: "",
     date: new Date().toISOString().split('T')[0]
   })
+  const [submitting, setSubmitting] = useState(false)
 
   // Gère le clic sur une carte : toggle si même carte, sinon ouvrir
   const handleCardClick = (metricType: string) => {
@@ -120,7 +121,7 @@ export function MetricsSection() {
     // Normalize the metric type before sending
     const normalizedType = normalizeMetricType(metricForm.type)
 
-    setLoading(true)
+    setSubmitting(true)
     try {
       const response = await fetch("/api/notion/metrics", {
         method: "POST",
@@ -147,7 +148,7 @@ export function MetricsSection() {
       console.error("Error creating metric:", error)
       alert(`Error creating metric: ${error.message}`)
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 

@@ -153,16 +153,7 @@ export function OverviewSection() {
     if (!newMilestone.title.trim()) return
 
     if (!config?.notionDatabases?.milestones) {
-      // Fallback to local state if no Notion database
-      const milestone: Milestone = {
-        id: Date.now().toString(),
-        title: newMilestone.title,
-        dueDate: newMilestone.dueDate,
-        description: newMilestone.description,
-        percentage: parseInt(newMilestone.percentage) || 0,
-      }
-      setMilestones([...milestones, milestone])
-      setIsAddingMilestone(false)
+      alert("Milestones database not configured in Project Settings")
       return
     }
 
@@ -216,14 +207,7 @@ export function OverviewSection() {
     if (!newMilestone.title.trim() || !editingMilestoneId) return
 
     if (!config?.notionDatabases?.milestones) {
-      // Fallback to local state
-      setMilestones(milestones.map(m =>
-        m.id === editingMilestoneId
-          ? { ...m, title: newMilestone.title, dueDate: newMilestone.dueDate, description: newMilestone.description, percentage: parseInt(newMilestone.percentage) || 0 }
-          : m
-      ))
-      setIsEditingMilestone(false)
-      setEditingMilestoneId(null)
+      alert("Milestones database not configured in Project Settings")
       return
     }
 
@@ -264,8 +248,7 @@ export function OverviewSection() {
     if (!confirm("Are you sure you want to delete this milestone?")) return
 
     if (!config?.notionDatabases?.milestones) {
-      // Fallback to local state
-      setMilestones(milestones.filter(m => m.id !== milestoneId))
+      alert("Milestones database not configured in Project Settings")
       return
     }
 

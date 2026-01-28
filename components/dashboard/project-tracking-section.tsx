@@ -174,10 +174,10 @@ export function OneTimeTasksSection() {
         await fetchTasks()
       } else {
         const errorData = await response.json()
-        setError(errorData.error || "Failed to create task")
+        alert(errorData.error || "Failed to create task")
       }
     } catch (err: any) {
-      setError(err.message)
+      alert(err.message || "Failed to create task")
     }
   }
 
