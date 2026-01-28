@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -21,6 +21,7 @@ import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
+import { useCachedFetch, useNotionData } from "@/lib/use-cached-fetch"
 
 interface Milestone {
   id: string
@@ -32,9 +33,6 @@ interface Milestone {
 
 export function OverviewSection() {
   const config = useProjectConfig()
-  const [description, setDescription] = useState("")
-  const [vision, setVision] = useState("")
-  const [milestones, setMilestones] = useState<Milestone[]>([])
 
   const [editingDescription, setEditingDescription] = useState(false)
   const [editingVision, setEditingVision] = useState(false)
@@ -52,44 +50,20 @@ export function OverviewSection() {
     percentage: "",
   })
 
-  // Charger les données depuis Notion au changement de projet
-  useEffect(() => {
-    if (config?.projectPageId) {
-      fetchOverview()
-    }
-    if (config?.notionDatabases?.milestones) {
-      fetchMilestones()
-    }
-  }, [config?.projectPageId, config?.notionDatabases?.milestones])
+  // Fetch overview data with 60s cache
+  const overviewUrl = config?.projectPageId
+    ? `/api/notion/project-overview?projectPageId=${config.projectPageId}`
+    : null
+  const { data: overviewData, refresh: fetchOverview } = useCachedFetch<{ description: string; vision: string }>(overviewUrl)
+  const description = overviewData?.description || ""
+  const vision = overviewData?.vision || ""
 
-  const fetchOverview = async () => {
-    if (!config?.projectPageId) return
-
-    try {
-      const response = await fetch(`/api/notion/project-overview?projectPageId=${config?.projectPageId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setDescription(data.description || "")
-        setVision(data.vision || "")
-      }
-    } catch (error) {
-      console.error("Error fetching overview:", error)
-    }
-  }
-
-  const fetchMilestones = async () => {
-    if (!config?.notionDatabases?.milestones) return
-
-    try {
-      const response = await fetch(`/api/notion/milestones?databaseId=${config?.notionDatabases.milestones}`)
-      if (response.ok) {
-        const data = await response.json()
-        setMilestones(data.milestones || [])
-      }
-    } catch (error) {
-      console.error("Error fetching milestones:", error)
-    }
-  }
+  // Fetch milestones with 60s cache
+  const { data: milestonesData, refresh: fetchMilestones } = useNotionData<{ milestones: Milestone[] }>(
+    "milestones",
+    config?.notionDatabases?.milestones
+  )
+  const milestones = milestonesData?.milestones || []
 
   const handleEditDescription = () => {
     setTempDescription(description)
@@ -98,7 +72,6 @@ export function OverviewSection() {
 
   const handleSaveDescription = async () => {
     if (!config?.projectPageId) {
-      setDescription(tempDescription)
       setEditingDescription(false)
       return
     }
@@ -117,7 +90,7 @@ export function OverviewSection() {
       })
 
       if (response.ok) {
-        setDescription(tempDescription)
+        await fetchOverview()
         setEditingDescription(false)
       } else {
         console.error("Failed to save description")
@@ -136,7 +109,6 @@ export function OverviewSection() {
 
   const handleSaveVision = async () => {
     if (!config?.projectPageId) {
-      setVision(tempVision)
       setEditingVision(false)
       return
     }
@@ -155,7 +127,7 @@ export function OverviewSection() {
       })
 
       if (response.ok) {
-        setVision(tempVision)
+        await fetchOverview()
         setEditingVision(false)
       } else {
         console.error("Failed to save vision")

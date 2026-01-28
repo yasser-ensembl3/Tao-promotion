@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
+import { useGitHubData } from "@/lib/use-cached-fetch"
 import { ExternalLink, GitBranch, GitCommit, GitPullRequest, AlertCircle } from "lucide-react"
 
 interface GitHubData {
@@ -47,41 +47,12 @@ interface GitHubData {
 
 export function GitHubSection() {
   const config = useProjectConfig()
-  const [data, setData] = useState<GitHubData | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const fetchGitHubData = useCallback(async () => {
-    if (!config?.github?.owner || !config?.github?.repo) return
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch(
-        `/api/github/repo?owner=${config?.github.owner}&repo=${config?.github.repo}`
-      )
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to fetch GitHub data")
-      }
-
-      const githubData = await response.json()
-      setData(githubData)
-    } catch (err: any) {
-      console.error("[GitHubSection] Error:", err)
-      setError(err.message || "Failed to fetch GitHub data")
-    } finally {
-      setLoading(false)
-    }
-  }, [config?.github?.owner, config?.github?.repo])
-
-  useEffect(() => {
-    if (config?.github?.owner && config?.github?.repo) {
-      fetchGitHubData()
-    }
-  }, [config?.github?.owner, config?.github?.repo, fetchGitHubData])
+  // Fetch GitHub data with 60s cache
+  const { data, isLoading: loading, error } = useGitHubData<GitHubData>(
+    config?.github?.owner,
+    config?.github?.repo
+  )
 
   const keyMetrics = data ? (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -116,7 +87,7 @@ export function GitHubSection() {
         <div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
           <div className="flex items-center space-x-2 text-destructive">
             <AlertCircle className="h-4 w-4" />
-            <span className="text-sm">{error}</span>
+            <span className="text-sm">{error.message || "Failed to fetch GitHub data"}</span>
           </div>
         </div>
       )}

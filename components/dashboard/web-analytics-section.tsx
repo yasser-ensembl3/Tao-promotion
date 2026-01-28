@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
+import { useCachedFetch } from "@/lib/use-cached-fetch"
 import { Button } from "@/components/ui/button"
 import {
   LineChart,
@@ -64,38 +65,25 @@ const DEVICE_COLORS: Record<string, string> = {
 
 export function WebAnalyticsSection() {
   const config = useProjectConfig()
-  const [records, setRecords] = useState<AnalyticsRecord[]>([])
-  const [loading, setLoading] = useState(false)
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("Sessions")
+  const [expanded, setExpanded] = useState(false)
 
-  const fetchAnalyticsData = async () => {
-    if (!config?.notionDatabases?.webAnalytics) {
-      return
-    }
-
-    setLoading(true)
-    try {
-      const response = await fetch(
-        `/api/notion/shopify?type=analytics&databaseId=${config.notionDatabases.webAnalytics}`
-      )
-      if (response.ok) {
-        const data = await response.json()
-        setRecords(data.records || [])
-      } else {
-        console.error("Failed to fetch analytics data from Notion")
-      }
-    } catch (error) {
-      console.error("Error fetching analytics data:", error)
-    } finally {
-      setLoading(false)
+  // Gère le clic sur une carte : toggle si même carte, sinon ouvrir
+  const handleCardClick = (metric: MetricKey) => {
+    if (selectedMetric === metric) {
+      setExpanded(!expanded)
+    } else {
+      setSelectedMetric(metric)
+      setExpanded(true)
     }
   }
 
-  useEffect(() => {
-    if (config?.notionDatabases?.webAnalytics) {
-      fetchAnalyticsData()
-    }
-  }, [config?.notionDatabases?.webAnalytics])
+  // Fetch analytics data with 60s cache
+  const analyticsUrl = config?.notionDatabases?.webAnalytics
+    ? `/api/notion/shopify?type=analytics&databaseId=${config.notionDatabases.webAnalytics}`
+    : null
+  const { data: analyticsData, isLoading: loading, refresh: fetchAnalyticsData } = useCachedFetch<{ records: AnalyticsRecord[] }>(analyticsUrl)
+  const records = analyticsData?.records || []
 
   // Get most recent record for summary
   const latestRecord = records.length > 0 ? records[0] : null
@@ -139,7 +127,7 @@ export function WebAnalyticsSection() {
         return (
           <button
             key={metric}
-            onClick={() => setSelectedMetric(metric)}
+            onClick={() => handleCardClick(metric)}
             className={`text-center p-3 rounded-lg transition-all cursor-pointer hover:shadow-md ${
               isSelected
                 ? "bg-blue-600 border-blue-700 ring-2 ring-blue-400"
@@ -392,6 +380,8 @@ export function WebAnalyticsSection() {
       icon="📊"
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
+      expanded={expanded}
+      onExpandedChange={setExpanded}
     />
   )
 }

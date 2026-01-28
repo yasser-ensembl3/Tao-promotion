@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
+import { useDriveData } from "@/lib/use-cached-fetch"
 import { ExternalLink, FileText, Folder, AlertCircle, File } from "lucide-react"
 
 interface DriveFile {
@@ -34,41 +34,11 @@ interface DriveData {
 
 export function DriveSection() {
   const config = useProjectConfig()
-  const [data, setData] = useState<DriveData | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const fetchDriveData = useCallback(async () => {
-    if (!config?.googleDrive?.folderId) return
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch(
-        `/api/drive/files?folderId=${config?.googleDrive.folderId}`
-      )
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to fetch Google Drive data")
-      }
-
-      const driveData = await response.json()
-      setData(driveData)
-    } catch (err: any) {
-      console.error("[DriveSection] Error:", err)
-      setError(err.message || "Failed to fetch Google Drive data")
-    } finally {
-      setLoading(false)
-    }
-  }, [config?.googleDrive?.folderId])
-
-  useEffect(() => {
-    if (config?.googleDrive?.folderId) {
-      fetchDriveData()
-    }
-  }, [config?.googleDrive?.folderId, fetchDriveData])
+  // Fetch Google Drive data with 60s cache
+  const { data, isLoading: loading, error } = useDriveData<DriveData>(
+    config?.googleDrive?.folderId
+  )
 
   const keyMetrics = data ? (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -118,7 +88,7 @@ export function DriveSection() {
         <div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
           <div className="flex items-center space-x-2 text-destructive">
             <AlertCircle className="h-4 w-4" />
-            <span className="text-sm">{error}</span>
+            <span className="text-sm">{error.message || "Failed to fetch Google Drive data"}</span>
           </div>
         </div>
       )}

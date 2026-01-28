@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
+import { useNotionData } from "@/lib/use-cached-fetch"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import {
@@ -43,43 +44,33 @@ interface Metric {
 
 export function MetricsSection() {
   const config = useProjectConfig()
-  const [metrics, setMetrics] = useState<Metric[]>([])
-  const [loading, setLoading] = useState(false)
   const [isAddMetricOpen, setIsAddMetricOpen] = useState(false)
   const [selectedMetricType, setSelectedMetricType] = useState<string>("")
+  const [expanded, setExpanded] = useState(false)
   const [metricForm, setMetricForm] = useState({
     type: "",
     value: "",
     date: new Date().toISOString().split('T')[0]
   })
 
-  // Fetch metrics from Notion
-  const fetchMetrics = async () => {
-    if (!config?.notionDatabases?.metrics) {
-      return
-    }
-
-    setLoading(true)
-    try {
-      const response = await fetch(`/api/notion/metrics?databaseId=${config?.notionDatabases.metrics}`)
-      if (response.ok) {
-        const data = await response.json()
-        setMetrics(data.metrics || [])
-      } else {
-        console.error("Failed to fetch metrics from Notion")
-      }
-    } catch (error) {
-      console.error("Error fetching metrics:", error)
-    } finally {
-      setLoading(false)
+  // Gère le clic sur une carte : toggle si même carte, sinon ouvrir
+  const handleCardClick = (metricType: string) => {
+    if (selectedMetricType === metricType) {
+      // Même carte = toggle
+      setExpanded(!expanded)
+    } else {
+      // Autre carte = sélectionner et ouvrir
+      setSelectedMetricType(metricType)
+      setExpanded(true)
     }
   }
 
-  useEffect(() => {
-    if (config?.notionDatabases?.metrics) {
-      fetchMetrics()
-    }
-  }, [config?.notionDatabases?.metrics])
+  // Fetch metrics from Notion with 60s cache
+  const { data: metricsData, isLoading: loading, refresh: fetchMetrics } = useNotionData<{ metrics: Metric[] }>(
+    "metrics",
+    config?.notionDatabases?.metrics
+  )
+  const metrics = metricsData?.metrics || []
 
   // Auto-select first metric type when metrics load
   useEffect(() => {
@@ -207,7 +198,7 @@ export function MetricsSection() {
         return (
           <button
             key={metric.id}
-            onClick={() => setSelectedMetricType(metric.type)}
+            onClick={() => handleCardClick(metric.type)}
             className={`text-center p-3 rounded-lg transition-all cursor-pointer hover:shadow-md ${
               isSelected
                 ? 'bg-blue-600 border-blue-700 ring-2 ring-blue-400'
@@ -404,6 +395,8 @@ export function MetricsSection() {
         icon="💪"
         keyMetrics={keyMetrics}
         detailedContent={detailedContent}
+        expanded={expanded}
+        onExpandedChange={setExpanded}
       />
 
       {/* Add Metric Dialog */}

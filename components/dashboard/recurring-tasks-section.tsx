@@ -1,19 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, RepeatIcon } from "lucide-react"
+import { CalendarIcon, ExternalLink } from "lucide-react"
 import { format } from "date-fns"
 import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
+import { useCachedFetch } from "@/lib/use-cached-fetch"
 
 interface RecurringTask {
   id: string
@@ -29,11 +29,9 @@ interface RecurringTask {
 
 export function RecurringTasksSection() {
   const config = useProjectConfig()
-  const [tasks, setTasks] = useState<RecurringTask[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
-  const [selectedFrequency, setSelectedFrequency] = useState<string | null>(null)
+  const [selectedFrequency, setSelectedFrequency] = useState<string>("all")
+  const [expanded, setExpanded] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -43,69 +41,81 @@ export function RecurringTasksSection() {
     frequency: ""
   })
 
-  // Frequency categories
+  // Frequency options with colors
   const frequencyOptions = [
-    { value: "Daily", label: "Daily", color: "bg-blue-100 text-blue-700 border-blue-300", emoji: "📅" },
-    { value: "Weekly", label: "Weekly", color: "bg-green-100 text-green-700 border-green-300", emoji: "📆" },
-    { value: "Monthly", label: "Monthly", color: "bg-purple-100 text-purple-700 border-purple-300", emoji: "🗓️" },
-    { value: "Quarterly", label: "Quarterly", color: "bg-orange-100 text-orange-700 border-orange-300", emoji: "📊" },
-    { value: "Custom", label: "Custom", color: "bg-gray-100 text-gray-700 border-gray-300", emoji: "⚙️" },
+    { value: "Daily", label: "Daily", color: "blue", emoji: "📅" },
+    { value: "Weekly", label: "Weekly", color: "green", emoji: "📆" },
+    { value: "Monthly", label: "Monthly", color: "purple", emoji: "🗓️" },
+    { value: "Quarterly", label: "Quarterly", color: "orange", emoji: "📊" },
+    { value: "Custom", label: "Custom", color: "gray", emoji: "⚙️" },
   ]
 
-  // Get frequency color
-  const getFrequencyColor = (frequency: string | null) => {
-    if (!frequency) return "bg-gray-100 text-gray-600 border-gray-300"
-    const option = frequencyOptions.find(opt => opt.value === frequency)
-    return option?.color || "bg-gray-100 text-gray-600 border-gray-300"
-  }
+  // Fetch tasks with 60s cache
+  const apiUrl = config?.notionDatabases?.recurringTasks
+    ? `/api/notion/recurring-tasks?databaseId=${config.notionDatabases.recurringTasks}`
+    : null
+  const { data: tasksData, isLoading: loading, refresh: fetchTasks, error } = useCachedFetch<{ tasks: RecurringTask[] }>(apiUrl)
+  const tasks = tasksData?.tasks || []
 
-  // Get frequency emoji
-  const getFrequencyEmoji = (frequency: string | null) => {
-    if (!frequency) return "⚙️"
-    const option = frequencyOptions.find(opt => opt.value === frequency)
-    return option?.emoji || "⚙️"
-  }
+  // Sort tasks: To Do and In Progress first, then by due date
+  const sortedTasks = [...tasks].sort((a, b) => {
+    // Priority statuses first
+    const priorityStatuses = ["In Progress", "To Do"]
+    const aIsPriority = priorityStatuses.includes(a.status)
+    const bIsPriority = priorityStatuses.includes(b.status)
 
-  // Filter tasks by frequency
-  const filteredTasks = selectedFrequency
-    ? tasks.filter(task => task.frequency === selectedFrequency)
-    : tasks
+    if (aIsPriority && !bIsPriority) return -1
+    if (!aIsPriority && bIsPriority) return 1
+
+    // Within priority, In Progress before To Do
+    if (aIsPriority && bIsPriority) {
+      if (a.status === "In Progress" && b.status !== "In Progress") return -1
+      if (a.status !== "In Progress" && b.status === "In Progress") return 1
+    }
+
+    // Then sort by due date
+    if (a.dueDate && b.dueDate) {
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+    }
+    if (a.dueDate) return -1
+    if (b.dueDate) return 1
+    return 0
+  })
+
+  // Handle card click: toggle if same frequency, otherwise open with new frequency
+  const handleFrequencyClick = (frequency: string) => {
+    if (selectedFrequency === frequency) {
+      setExpanded(!expanded)
+    } else {
+      setSelectedFrequency(frequency)
+      setExpanded(true)
+    }
+  }
 
   // Group tasks by frequency
   const tasksByFrequency = frequencyOptions.reduce((acc, option) => {
-    acc[option.value] = tasks.filter(task => task.frequency === option.value)
+    acc[option.value] = sortedTasks.filter(task => task.frequency === option.value)
     return acc
   }, {} as Record<string, RecurringTask[]>)
 
-  const fetchTasks = async () => {
-    if (!config?.notionDatabases?.recurringTasks) {
-      setError("Recurring tasks database not configured")
-      return
+  // Get filtered tasks based on selection
+  const getFilteredTasks = () => {
+    if (selectedFrequency === "all") {
+      return sortedTasks
     }
-
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch(`/api/notion/recurring-tasks?databaseId=${config?.notionDatabases.recurringTasks}`)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch recurring tasks")
-      }
-
-      setTasks(data.tasks)
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+    return tasksByFrequency[selectedFrequency] || []
   }
 
-  useEffect(() => {
-    if (config?.notionDatabases?.recurringTasks) {
-      fetchTasks()
+  // Get frequency badge color
+  const getFrequencyBadgeColor = (frequency: string | null) => {
+    switch (frequency) {
+      case "Daily": return "bg-blue-100 text-blue-700"
+      case "Weekly": return "bg-green-100 text-green-700"
+      case "Monthly": return "bg-purple-100 text-purple-700"
+      case "Quarterly": return "bg-orange-100 text-orange-700"
+      default: return "bg-gray-100 text-gray-600"
     }
-  }, [config?.notionDatabases?.recurringTasks])
+  }
 
   const handleCreateTask = async () => {
     if (!formData.title || !config?.notionDatabases?.recurringTasks) return
@@ -147,85 +157,97 @@ export function RecurringTasksSection() {
     }
   }
 
-  // Get active recurring tasks for quick view
-  const activeTasks = tasks.filter(t => t.status !== "Done" && t.status !== "Completed")
+  const selectedFrequencyInfo = frequencyOptions.find(f => f.value === selectedFrequency)
+  const filteredTasks = getFilteredTasks()
 
-  const keyMetrics = activeTasks.length > 0 ? (
-    <div className="space-y-2">
-      <div className="text-xs font-medium text-muted-foreground mb-2">
-        {activeTasks.length} active recurring task{activeTasks.length !== 1 ? 's' : ''}
-      </div>
-      {activeTasks.slice(0, 5).map((task) => (
-        <div key={task.id} className="p-2 rounded-lg bg-purple-50 border border-purple-200">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <div className="font-medium text-xs text-purple-900 truncate">
-                {getFrequencyEmoji(task.frequency)} {task.title}
-              </div>
-              <div className="flex gap-2 mt-1 flex-wrap">
-                {task.frequency && (
-                  <span className="text-[10px] text-purple-600">
-                    🔄 {frequencyOptions.find(f => f.value === task.frequency)?.label || task.frequency}
-                  </span>
-                )}
-                {task.assignee && (
-                  <span className="text-[10px] text-purple-600">👤 {task.assignee}</span>
-                )}
-              </div>
+  const keyMetrics = tasks.length > 0 ? (
+    <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+      {frequencyOptions.map((option) => {
+        const count = tasksByFrequency[option.value]?.length || 0
+        const isSelected = selectedFrequency === option.value
+
+        return (
+          <button
+            key={option.value}
+            onClick={() => handleFrequencyClick(option.value)}
+            className={`p-2 rounded-lg border text-center transition-all cursor-pointer hover:shadow-md ${
+              isSelected
+                ? option.color === 'blue' ? 'ring-2 ring-blue-400 bg-blue-100 border-blue-400 dark:bg-blue-900' :
+                  option.color === 'green' ? 'ring-2 ring-green-400 bg-green-100 border-green-400 dark:bg-green-900' :
+                  option.color === 'purple' ? 'ring-2 ring-purple-400 bg-purple-100 border-purple-400 dark:bg-purple-900' :
+                  option.color === 'orange' ? 'ring-2 ring-orange-400 bg-orange-100 border-orange-400 dark:bg-orange-900' :
+                  'ring-2 ring-gray-400 bg-gray-100 border-gray-400 dark:bg-gray-800'
+                : 'bg-muted/50 border-border hover:bg-muted'
+            }`}
+          >
+            <div className="text-xl">{option.emoji}</div>
+            <div className={`text-lg font-bold ${
+              count > 0
+                ? option.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
+                  option.color === 'green' ? 'text-green-600 dark:text-green-400' :
+                  option.color === 'purple' ? 'text-purple-600 dark:text-purple-400' :
+                  option.color === 'orange' ? 'text-orange-600 dark:text-orange-400' :
+                  'text-gray-600 dark:text-gray-400'
+                : 'text-gray-400'
+            }`}>
+              {count}
             </div>
-          </div>
-        </div>
-      ))}
-      {activeTasks.length > 5 && (
-        <div className="text-[10px] text-muted-foreground text-center">
-          +{activeTasks.length - 5} more
-        </div>
-      )}
+            <div className="text-[10px] text-muted-foreground truncate">
+              {option.label}
+            </div>
+          </button>
+        )
+      })}
     </div>
   ) : (
     <div className="text-center p-4 rounded-lg bg-muted/50 border border-dashed">
-      <p className="text-xs text-muted-foreground">No active recurring tasks</p>
+      <p className="text-sm text-muted-foreground">No recurring tasks yet</p>
     </div>
   )
 
   const detailedContent = (
-    <div className="space-y-6">
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-semibold">Recurring Tasks from Notion</h4>
-          <div className="flex gap-2">
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" disabled={!config?.notionDatabases?.recurringTasks}>
-                  New Task
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[525px]">
-                <DialogHeader>
-                  <DialogTitle>Create Recurring Task</DialogTitle>
-                  <DialogDescription>
-                    Add a new recurring task to your Notion database.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title">Name *</Label>
-                    <Input
-                      id="title"
-                      placeholder="Task name"
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Input
-                      id="description"
-                      placeholder="Task description"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    />
-                  </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h4 className="font-semibold">
+          {selectedFrequencyInfo?.emoji} {selectedFrequencyInfo?.label || "All Recurring Tasks"} ({filteredTasks.length})
+        </h4>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={fetchTasks} disabled={loading}>
+            {loading ? "Refreshing..." : "Refresh"}
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" disabled={!config?.notionDatabases?.recurringTasks}>
+                New Task
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[525px]">
+              <DialogHeader>
+                <DialogTitle>Create Recurring Task</DialogTitle>
+                <DialogDescription>
+                  Add a new recurring task to your Notion database.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="title">Name *</Label>
+                  <Input
+                    id="title"
+                    placeholder="Task name"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    placeholder="Task description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="frequency">Frequency *</Label>
                     <Select
@@ -245,52 +267,13 @@ export function RecurringTasksSection() {
                     </Select>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="assignee">Assignee</Label>
-                    <Input
-                      id="assignee"
-                      placeholder="e.g., John Doe"
-                      value={formData.assignee}
-                      onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="dueDate">Next Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.dueDate ? (
-                            format(new Date(formData.dueDate), "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={formData.dueDate ? new Date(formData.dueDate) : undefined}
-                          onSelect={(date) => {
-                            if (date) {
-                              setFormData({
-                                ...formData,
-                                dueDate: format(date, "yyyy-MM-dd")
-                              })
-                            }
-                          }}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="grid gap-2">
                     <Label htmlFor="status">Status</Label>
                     <Select
                       value={formData.status}
                       onValueChange={(value) => setFormData({ ...formData, status: value })}
                     >
                       <SelectTrigger id="status">
-                        <SelectValue placeholder="Select status (optional)" />
+                        <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="To Do">To Do</SelectItem>
@@ -300,139 +283,142 @@ export function RecurringTasksSection() {
                     </Select>
                   </div>
                 </div>
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="button" onClick={handleCreateTask} disabled={!formData.title}>
-                    Create Task
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            <Button size="sm" onClick={fetchTasks} disabled={loading}>
-              {loading ? "Refreshing..." : "Refresh"}
-            </Button>
+                <div className="grid gap-2">
+                  <Label htmlFor="dueDate">Next Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.dueDate ? format(new Date(formData.dueDate), "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.dueDate ? new Date(formData.dueDate) : undefined}
+                        onSelect={(date) => {
+                          if (date) setFormData({ ...formData, dueDate: format(date, "yyyy-MM-dd") })
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="assignee">Assignee</Label>
+                  <Input
+                    id="assignee"
+                    placeholder="e.g., John Doe"
+                    value={formData.assignee}
+                    onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={handleCreateTask} disabled={!formData.title}>
+                  Create Task
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {error && (
+        <div className="p-4 border border-red-500 rounded-lg bg-red-500/10">
+          <p className="text-sm text-red-500">{error.message || String(error)}</p>
+        </div>
+      )}
+
+      {filteredTasks.length === 0 ? (
+        <div className="p-8 border rounded-lg text-center border-dashed">
+          <p className="text-sm text-muted-foreground">
+            {!config?.notionDatabases?.recurringTasks
+              ? "Recurring tasks database not configured."
+              : "No recurring tasks in this category."}
+          </p>
+        </div>
+      ) : (
+        <div className="border rounded-lg overflow-hidden">
+          <div className="p-3 space-y-2">
+            {filteredTasks.map((task) => (
+              <div
+                key={task.id}
+                className="flex items-center gap-3 text-sm p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
+              >
+                {/* Frequency indicator */}
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                  task.frequency === "Daily" ? "bg-blue-500" :
+                  task.frequency === "Weekly" ? "bg-green-500" :
+                  task.frequency === "Monthly" ? "bg-purple-500" :
+                  task.frequency === "Quarterly" ? "bg-orange-500" :
+                  "bg-gray-400"
+                }`} />
+
+                {/* Task info */}
+                <div className="flex-1 min-w-0">
+                  <h5 className="font-medium truncate">{task.title}</h5>
+                  {task.description && (
+                    <p className="text-xs text-muted-foreground truncate">{task.description}</p>
+                  )}
+                </div>
+
+                {/* Next date */}
+                {task.dueDate && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground flex-shrink-0 hidden sm:flex">
+                    <CalendarIcon className="h-3 w-3" />
+                    <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+                  </div>
+                )}
+
+                {/* Last completed */}
+                {task.lastCompleted && (
+                  <div className="text-xs text-muted-foreground flex-shrink-0 hidden md:block">
+                    ✓ {new Date(task.lastCompleted).toLocaleDateString()}
+                  </div>
+                )}
+
+                {/* Frequency badge */}
+                <Badge variant="outline" className={`text-xs flex-shrink-0 ${getFrequencyBadgeColor(task.frequency)}`}>
+                  {task.frequency || "Custom"}
+                </Badge>
+
+                {/* Status badge */}
+                {task.status && (
+                  <Badge variant="outline" className="text-xs flex-shrink-0">
+                    {task.status}
+                  </Badge>
+                )}
+
+                {/* Actions */}
+                <a
+                  href={task.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded hover:bg-muted flex-shrink-0"
+                >
+                  <ExternalLink className="h-4 w-4 text-blue-500" />
+                </a>
+              </div>
+            ))}
           </div>
         </div>
-
-        {error && (
-          <div className="p-4 border border-red-500 rounded-lg bg-red-500/10 mb-4">
-            <p className="text-sm text-red-500">{error}</p>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="p-8 border rounded-lg text-center">
-            <p className="text-sm text-muted-foreground">Loading tasks...</p>
-          </div>
-        ) : tasks.length === 0 ? (
-          <div className="p-8 border rounded-lg text-center">
-            <p className="text-sm text-muted-foreground">
-              {config?.notionDatabases?.recurringTasks
-                ? "No recurring tasks available. Click 'New Task' to create your first task."
-                : "Recurring tasks database not configured. Configure it in project settings."}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Frequency Filter */}
-            <div className="flex gap-2 flex-wrap">
-              <Button
-                size="sm"
-                variant={selectedFrequency === null ? "default" : "outline"}
-                onClick={() => setSelectedFrequency(null)}
-              >
-                All ({tasks.length})
-              </Button>
-              {frequencyOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  size="sm"
-                  variant={selectedFrequency === option.value ? "default" : "outline"}
-                  onClick={() => setSelectedFrequency(option.value)}
-                  className={selectedFrequency === option.value ? option.color : ""}
-                >
-                  {option.emoji} {option.label} ({tasksByFrequency[option.value]?.length || 0})
-                </Button>
-              ))}
-            </div>
-
-            {/* Tasks Grid grouped by Frequency */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {frequencyOptions.map((option) => {
-                const frequencyTasks = tasksByFrequency[option.value] || []
-                if (selectedFrequency && selectedFrequency !== option.value) return null
-                if (!selectedFrequency && frequencyTasks.length === 0) return null
-
-                return (
-                  <div key={option.value} className="space-y-3">
-                    <div className={`p-2 rounded-lg border ${option.color} font-semibold text-sm text-center`}>
-                      {option.emoji} {option.label} ({frequencyTasks.length})
-                    </div>
-                    <div className="space-y-3 min-h-[150px]">
-                      {frequencyTasks.map((task) => (
-                        <Card key={task.id} className="hover:shadow-md transition-shadow">
-                          <CardContent className="p-4">
-                            <div className="space-y-2">
-                              <CardTitle className="text-sm font-semibold">{task.title}</CardTitle>
-
-                              {task.description && (
-                                <p className="text-xs text-muted-foreground">{task.description}</p>
-                              )}
-
-                              {(task.assignee || task.dueDate || task.lastCompleted) && (
-                                <CardDescription className="text-xs space-y-1">
-                                  {task.assignee && <div>👤 {task.assignee}</div>}
-                                  {task.dueDate && (
-                                    <div>📅 Next: {new Date(task.dueDate).toLocaleDateString()}</div>
-                                  )}
-                                  {task.lastCompleted && (
-                                    <div className="text-muted-foreground">
-                                      ✓ Last: {new Date(task.lastCompleted).toLocaleDateString()}
-                                    </div>
-                                  )}
-                                </CardDescription>
-                              )}
-
-                              {task.status && (
-                                <div className="mt-2">
-                                  <Badge variant="outline" className="text-xs">
-                                    {task.status}
-                                  </Badge>
-                                </div>
-                              )}
-
-                              <a
-                                href={task.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[10px] text-blue-500 hover:underline block mt-1"
-                              >
-                                View in Notion →
-                              </a>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
 
   return (
     <PageSection
       title="Recurring Tasks"
-      description="Track recurring tasks from Notion (daily, weekly, monthly, quarterly)"
+      description="Track recurring tasks from Notion"
       icon="🔄"
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
+      expanded={expanded}
+      onExpandedChange={setExpanded}
     />
   )
 }

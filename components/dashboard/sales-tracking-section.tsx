@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { PageSection } from "./page-section"
 import { useProjectConfig } from "@/lib/project-config"
+import { useCachedFetch } from "@/lib/use-cached-fetch"
 import { Button } from "@/components/ui/button"
 import {
   LineChart,
@@ -53,73 +54,39 @@ const METRIC_CONFIGS: Record<MetricKey, { label: string; format: (v: number) => 
 
 export function SalesTrackingSection() {
   const config = useProjectConfig()
-  const [records, setRecords] = useState<SalesRecord[]>([])
-  const [orders, setOrders] = useState<OrderRecord[]>([])
-  const [loading, setLoading] = useState(false)
-  const [ordersLoading, setOrdersLoading] = useState(false)
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("Total Sales")
+  const [expanded, setExpanded] = useState(false)
   const [showAllOrders, setShowAllOrders] = useState(false)
 
-  const fetchSalesData = async () => {
-    if (!config?.notionDatabases?.salesTracking) {
-      return
-    }
-
-    setLoading(true)
-    try {
-      const response = await fetch(
-        `/api/notion/shopify?type=sales&databaseId=${config.notionDatabases.salesTracking}`
-      )
-      if (response.ok) {
-        const data = await response.json()
-        setRecords(data.records || [])
-      } else {
-        console.error("Failed to fetch sales data from Notion")
-      }
-    } catch (error) {
-      console.error("Error fetching sales data:", error)
-    } finally {
-      setLoading(false)
+  // Gère le clic sur une carte : toggle si même carte, sinon ouvrir
+  const handleCardClick = (metric: MetricKey) => {
+    if (selectedMetric === metric) {
+      setExpanded(!expanded)
+    } else {
+      setSelectedMetric(metric)
+      setExpanded(true)
     }
   }
 
-  const fetchOrders = async () => {
-    if (!config?.notionDatabases?.orders) {
-      return
-    }
+  // Fetch sales data with 60s cache
+  const salesUrl = config?.notionDatabases?.salesTracking
+    ? `/api/notion/shopify?type=sales&databaseId=${config.notionDatabases.salesTracking}`
+    : null
+  const { data: salesData, isLoading: loading, refresh: fetchSalesData } = useCachedFetch<{ records: SalesRecord[] }>(salesUrl)
+  const records = salesData?.records || []
 
-    setOrdersLoading(true)
-    try {
-      const response = await fetch(
-        `/api/notion/sales?databaseId=${config.notionDatabases.orders}`
-      )
-      if (response.ok) {
-        const data = await response.json()
-        // Sort orders by date descending (most recent first)
-        const sortedOrders = (data.orders || []).sort((a: OrderRecord, b: OrderRecord) => {
-          const dateA = a["Date"] ? new Date(a["Date"] as string).getTime() : 0
-          const dateB = b["Date"] ? new Date(b["Date"] as string).getTime() : 0
-          return dateB - dateA
-        })
-        setOrders(sortedOrders)
-      } else {
-        console.error("Failed to fetch orders from Notion")
-      }
-    } catch (error) {
-      console.error("Error fetching orders:", error)
-    } finally {
-      setOrdersLoading(false)
-    }
-  }
+  // Fetch orders with 60s cache
+  const ordersUrl = config?.notionDatabases?.orders
+    ? `/api/notion/sales?databaseId=${config.notionDatabases.orders}`
+    : null
+  const { data: ordersData, isLoading: ordersLoading, refresh: fetchOrders } = useCachedFetch<{ orders: OrderRecord[] }>(ordersUrl)
 
-  useEffect(() => {
-    if (config?.notionDatabases?.salesTracking) {
-      fetchSalesData()
-    }
-    if (config?.notionDatabases?.orders) {
-      fetchOrders()
-    }
-  }, [config?.notionDatabases?.salesTracking, config?.notionDatabases?.orders])
+  // Sort orders by date descending (most recent first)
+  const orders = (ordersData?.orders || []).sort((a: OrderRecord, b: OrderRecord) => {
+    const dateA = a["Date"] ? new Date(a["Date"] as string).getTime() : 0
+    const dateB = b["Date"] ? new Date(b["Date"] as string).getTime() : 0
+    return dateB - dateA
+  })
 
   // Get most recent record for summary
   const latestRecord = records.length > 0 ? records[0] : null
@@ -149,7 +116,7 @@ export function SalesTrackingSection() {
         return (
           <button
             key={metric}
-            onClick={() => setSelectedMetric(metric)}
+            onClick={() => handleCardClick(metric)}
             className={`text-center p-3 rounded-lg transition-all cursor-pointer hover:shadow-md ${
               isSelected
                 ? "bg-emerald-600 border-emerald-700 ring-2 ring-emerald-400"
@@ -401,6 +368,8 @@ export function SalesTrackingSection() {
       icon="💰"
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
+      expanded={expanded}
+      onExpandedChange={setExpanded}
     />
   )
 }
