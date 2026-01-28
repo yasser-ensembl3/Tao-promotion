@@ -10,7 +10,7 @@ import { WebAnalyticsSection } from "@/components/dashboard/web-analytics-sectio
 export default function DashboardPage() {
   return (
     <AuthWrapper>
-      <div className="space-y-6 p-4">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6">
         <DashboardHeader />
         <div className="space-y-4">
           <OrdersSection />

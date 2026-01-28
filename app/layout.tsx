@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthProvider } from '@/components/auth/session-provider'
 import { SWRProvider } from '@/lib/swr-config'
-import { Sidebar } from '@/components/sidebar'
+import { Sidebar, MobileNav } from '@/components/sidebar'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -29,8 +29,9 @@ export default function RootLayout({
         <AuthProvider>
           <SWRProvider>
             <div className="flex min-h-screen">
+              <MobileNav />
               <Sidebar />
-              <main className="flex-1 overflow-auto">
+              <main className="flex-1 overflow-auto pt-14 lg:pt-0">
                 {children}
               </main>
             </div>

@@ -6,7 +6,7 @@ import { UserFeedbackSection } from "@/components/dashboard/user-feedback-sectio
 export default function FeedbackPage() {
   return (
     <AuthWrapper>
-      <div className="p-4">
+      <div className="p-3 sm:p-4 lg:p-6">
         <UserFeedbackSection />
       </div>
     </AuthWrapper>

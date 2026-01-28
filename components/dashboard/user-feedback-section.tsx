@@ -210,42 +210,47 @@ export function UserFeedbackSection() {
     <div className="space-y-6">
       <div className="border rounded-lg">
         <div
-          className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+          className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
           onClick={() => setDetailsOpen(!detailsOpen)}
         >
-          <div className="flex items-center gap-2">
-            <h4 className="font-semibold">Feedback Items</h4>
-            <span className="text-xs text-muted-foreground">
-              ({feedbacks.length} feedbacks)
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation()
-                fetchFeedbacks()
-              }}
-              disabled={loading || !config?.notionDatabases?.feedback}
-            >
-              {loading ? "Refreshing..." : "Refresh"}
-            </Button>
-            <Button
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleOpenAdd()
-              }}
-              disabled={!config?.notionDatabases?.feedback}
-            >
-              Add Feedback
-            </Button>
-            {detailsOpen ? (
-              <ChevronUp className="h-5 w-5 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-5 w-5 text-muted-foreground" />
-            )}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <h4 className="font-semibold text-sm sm:text-base">Feedback Items</h4>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                ({feedbacks.length})
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  fetchFeedbacks()
+                }}
+                disabled={loading || !config?.notionDatabases?.feedback}
+                className="hidden sm:inline-flex"
+              >
+                {loading ? "..." : "Refresh"}
+              </Button>
+              <Button
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleOpenAdd()
+                }}
+                disabled={!config?.notionDatabases?.feedback}
+                className="text-xs sm:text-sm"
+              >
+                <span className="sm:hidden">+</span>
+                <span className="hidden sm:inline">Add Feedback</span>
+              </Button>
+              {detailsOpen ? (
+                <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              )}
+            </div>
           </div>
         </div>
 
@@ -270,32 +275,35 @@ export function UserFeedbackSection() {
               <div className="space-y-3">
                 {feedbacks.map((feedback) => (
                   <Card key={feedback.id}>
-                    <CardContent className="p-4">
+                    <CardContent className="p-3 sm:p-4">
                       <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h5 className="font-semibold text-base">{feedback.title}</h5>
-                              <Badge variant="outline" className="text-xs">
-                                {new Date(feedback.date).toLocaleDateString()}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-2">{feedback.feedback}</p>
-                            <p className="text-xs text-muted-foreground">
-                              <span className="font-medium">By:</span> {feedback.userName}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button size="sm" variant="outline" onClick={() => handleOpenEdit(feedback)}>
+                        {/* Header with title and date */}
+                        <div className="flex items-start justify-between gap-2">
+                          <h5 className="font-semibold text-sm sm:text-base">{feedback.title}</h5>
+                          <Badge variant="outline" className="text-xs flex-shrink-0">
+                            {new Date(feedback.date).toLocaleDateString()}
+                          </Badge>
+                        </div>
+
+                        {/* Content */}
+                        <p className="text-sm text-muted-foreground">{feedback.feedback}</p>
+
+                        {/* Footer with author and actions */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t border-border/50">
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium">By:</span> {feedback.userName}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleOpenEdit(feedback)} className="h-7 text-xs">
                               Edit
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDelete(feedback.id)}>
+                            <Button size="sm" variant="destructive" onClick={() => handleDelete(feedback.id)} className="h-7 text-xs">
                               Delete
                             </Button>
                             {feedback.url && (
-                              <Button size="sm" variant="outline" asChild>
+                              <Button size="sm" variant="outline" asChild className="h-7 text-xs">
                                 <a href={feedback.url} target="_blank" rel="noopener noreferrer">
-                                  View in Notion
+                                  View
                                 </a>
                               </Button>
                             )}

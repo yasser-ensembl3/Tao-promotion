@@ -319,7 +319,7 @@ export function MetricsSection() {
                   </div>
 
                   {/* Chart */}
-                  <div className="h-80 w-full">
+                  <div className="h-56 sm:h-72 md:h-80 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={chartData}

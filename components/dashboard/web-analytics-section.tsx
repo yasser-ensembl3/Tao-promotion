@@ -314,27 +314,27 @@ export function WebAnalyticsSection() {
 
           {/* Conversion funnel */}
           {latestRecord && (
-            <div className="border rounded-lg p-4">
-              <h5 className="font-semibold mb-3">Conversion Funnel</h5>
-              <div className="grid grid-cols-4 gap-2">
-                <div className="text-center p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">{(latestRecord.Sessions ?? 0).toLocaleString()}</p>
+            <div className="border rounded-lg p-3 sm:p-4">
+              <h5 className="font-semibold mb-3 text-sm sm:text-base">Conversion Funnel</h5>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="text-center p-2 sm:p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <p className="text-lg sm:text-2xl font-bold text-blue-600">{(latestRecord.Sessions ?? 0).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Sessions</p>
                 </div>
-                <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
-                  <p className="text-2xl font-bold text-yellow-600">
+                <div className="text-center p-2 sm:p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+                  <p className="text-lg sm:text-2xl font-bold text-yellow-600">
                     {(latestRecord["Add to Cart Rate"] ?? 0).toFixed(1)}%
                   </p>
                   <p className="text-xs text-muted-foreground">Add to Cart</p>
                 </div>
-                <div className="text-center p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
-                  <p className="text-2xl font-bold text-purple-600">
+                <div className="text-center p-2 sm:p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                  <p className="text-lg sm:text-2xl font-bold text-purple-600">
                     {(latestRecord["Checkout Rate"] ?? 0).toFixed(1)}%
                   </p>
                   <p className="text-xs text-muted-foreground">Checkout</p>
                 </div>
-                <div className="text-center p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">
+                <div className="text-center p-2 sm:p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                  <p className="text-lg sm:text-2xl font-bold text-green-600">
                     {(latestRecord["Conversion Rate"] ?? 0).toFixed(2)}%
                   </p>
                   <p className="text-xs text-muted-foreground">Converted</p>

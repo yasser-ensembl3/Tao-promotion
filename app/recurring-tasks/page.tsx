@@ -6,7 +6,7 @@ import { RecurringTasksSection } from "@/components/dashboard/recurring-tasks-se
 export default function RecurringTasksPage() {
   return (
     <AuthWrapper>
-      <div className="p-4">
+      <div className="p-3 sm:p-4 lg:p-6">
         <RecurringTasksSection />
       </div>
     </AuthWrapper>

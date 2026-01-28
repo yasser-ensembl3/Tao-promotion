@@ -168,39 +168,72 @@ export function OrdersSection() {
       href={order.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-3 text-sm p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
+      className="block text-sm p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
     >
-      <span className="font-mono text-muted-foreground w-16 flex-shrink-0">
-        {order["Order"] || "-"}
-      </span>
-      <span className="font-medium flex-1 truncate">
-        {order["Customer"] || "-"}
-      </span>
-      <span className="text-muted-foreground w-24 text-right flex-shrink-0 hidden sm:block">
-        {order["Date"] || "-"}
-      </span>
-      <span className="text-blue-600 w-10 text-center flex-shrink-0">
-        {order["Items"] || 0}x
-      </span>
-      <span className="font-semibold text-emerald-600 w-16 text-right flex-shrink-0">
-        ${Number(order["Total $"] || 0).toFixed(0)}
-      </span>
-      <span className={`text-xs px-2 py-1 rounded flex-shrink-0 ${
-        order["Payment"] === "Paid"
-          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
-          : order["Payment"] === "Refunded"
-          ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-      }`}>
-        {order["Payment"] || "Pending"}
-      </span>
-      <span className={`text-xs px-2 py-1 rounded flex-shrink-0 ${
-        order["Fulfillment"] === "Fulfilled"
-          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-          : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
-      }`}>
-        {order["Fulfillment"] || "Unfulfilled"}
-      </span>
+      {/* Mobile layout */}
+      <div className="flex flex-col gap-2 sm:hidden">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-muted-foreground text-xs">
+            {order["Order"] || "-"}
+          </span>
+          <span className="font-semibold text-emerald-600">
+            ${Number(order["Total $"] || 0).toFixed(0)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-blue-600 text-xs">{order["Items"] || 0}x</span>
+            <span className={`text-xs px-1.5 py-0.5 rounded ${
+              order["Payment"] === "Paid"
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                : order["Payment"] === "Refunded"
+                ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+            }`}>
+              {order["Payment"] || "Pending"}
+            </span>
+            <span className={`text-xs px-1.5 py-0.5 rounded ${
+              order["Fulfillment"] === "Fulfilled"
+                ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
+            }`}>
+              {order["Fulfillment"] === "Fulfilled" ? "Done" : "Pending"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop layout */}
+      <div className="hidden sm:flex items-center gap-3">
+        <span className="font-mono text-muted-foreground w-20 flex-shrink-0">
+          {order["Order"] || "-"}
+        </span>
+        <span className="text-muted-foreground w-24 text-right flex-shrink-0 hidden md:block">
+          {order["Date"] || "-"}
+        </span>
+        <span className="text-blue-600 w-8 text-center flex-shrink-0">
+          {order["Items"] || 0}x
+        </span>
+        <span className="font-semibold text-emerald-600 w-12 text-right flex-shrink-0">
+          ${Number(order["Total $"] || 0).toFixed(0)}
+        </span>
+        <span className={`text-xs px-2 py-1 rounded flex-shrink-0 ${
+          order["Payment"] === "Paid"
+            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+            : order["Payment"] === "Refunded"
+            ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+        }`}>
+          {order["Payment"] || "Pending"}
+        </span>
+        <span className={`text-xs px-2 py-1 rounded flex-shrink-0 ${
+          order["Fulfillment"] === "Fulfilled"
+            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+            : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
+        }`}>
+          {order["Fulfillment"] || "Unfulfilled"}
+        </span>
+      </div>
     </a>
   )
 
