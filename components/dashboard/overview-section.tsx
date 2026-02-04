@@ -271,7 +271,7 @@ export function OverviewSection() {
   }
 
   const detailedContent = (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div>
         <div className="flex items-center justify-between mb-3">
           <h4 className="font-semibold">Project Description</h4>
@@ -290,7 +290,7 @@ export function OverviewSection() {
             </div>
           )}
         </div>
-        <div className="p-4 border rounded-lg">
+        <div className="p-2 border rounded-lg">
           {editingDescription ? (
             <textarea
               className="w-full min-h-[100px] bg-transparent text-sm resize-none focus:outline-none"
@@ -327,7 +327,7 @@ export function OverviewSection() {
             </div>
           )}
         </div>
-        <div className="p-4 border rounded-lg">
+        <div className="p-2 border rounded-lg">
           {editingVision ? (
             <textarea
               className="w-full min-h-[100px] bg-transparent text-sm resize-none focus:outline-none"
@@ -352,7 +352,7 @@ export function OverviewSection() {
           <Button size="sm" onClick={handleAddMilestone}>Add Milestone</Button>
         </div>
         {milestones.length === 0 ? (
-          <div className="p-8 border rounded-lg text-center">
+          <div className="p-3 border rounded-lg text-center">
             <p className="text-sm text-muted-foreground">
               No milestones created yet. Milestones help track major project achievements and deadlines.
             </p>
@@ -364,7 +364,7 @@ export function OverviewSection() {
           <div className="space-y-3">
             {milestones.map((milestone) => (
               <Card key={milestone.id}>
-                <CardContent className="p-4">
+                <CardContent className="p-2">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <h5 className="font-medium text-sm flex-1">{milestone.title}</h5>
@@ -413,7 +413,7 @@ export function OverviewSection() {
       <PageSection
         title="Overview"
         description="High-level summary of your project status and activity"
-        icon="📊"
+        icon=""
         detailedContent={detailedContent}
       />
 
@@ -425,7 +425,7 @@ export function OverviewSection() {
               Create a new milestone for your project
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-2 py-4">
             <div className="space-y-2">
               <Label htmlFor="milestone-title">Name</Label>
               <Input
@@ -521,7 +521,7 @@ export function OverviewSection() {
               Update milestone information
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-2 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-milestone-title">Name</Label>
               <Input

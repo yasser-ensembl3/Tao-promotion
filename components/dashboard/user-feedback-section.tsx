@@ -20,12 +20,16 @@ interface Feedback {
   url?: string
 }
 
+type FilterType = "all" | "week" | "month"
+
 export function UserFeedbackSection() {
   const config = useProjectConfig()
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [selectedFilter, setSelectedFilter] = useState<FilterType>("all")
+  const [expanded, setExpanded] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
     date: new Date().toISOString().split('T')[0],
@@ -33,6 +37,16 @@ export function UserFeedbackSection() {
     userName: ""
   })
   const [detailsOpen, setDetailsOpen] = useState(true)
+
+  // Handle card click: toggle if same filter, otherwise open with new filter
+  const handleCardClick = (filter: FilterType) => {
+    if (selectedFilter === filter) {
+      setExpanded(!expanded)
+    } else {
+      setSelectedFilter(filter)
+      setExpanded(true)
+    }
+  }
 
   const fetchFeedbacks = async () => {
     if (!config?.notionDatabases?.feedback) {
@@ -175,107 +189,129 @@ export function UserFeedbackSection() {
     }
   }
 
-  const totalCount = feedbacks.length
-  const thisWeekCount = feedbacks.filter(f => {
-    const feedbackDate = new Date(f.date)
+  // Filter feedbacks by period
+  const getThisWeekFeedbacks = () => {
     const oneWeekAgo = new Date()
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
-    return feedbackDate >= oneWeekAgo
-  }).length
-  const thisMonthCount = feedbacks.filter(f => {
-    const feedbackDate = new Date(f.date)
+    return feedbacks.filter(f => new Date(f.date) >= oneWeekAgo)
+  }
+
+  const getThisMonthFeedbacks = () => {
     const oneMonthAgo = new Date()
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
-    return feedbackDate >= oneMonthAgo
-  }).length
+    return feedbacks.filter(f => new Date(f.date) >= oneMonthAgo)
+  }
+
+  const getFilteredFeedbacks = () => {
+    switch (selectedFilter) {
+      case "week":
+        return getThisWeekFeedbacks()
+      case "month":
+        return getThisMonthFeedbacks()
+      case "all":
+      default:
+        return feedbacks
+    }
+  }
+
+  const getFilterTitle = () => {
+    switch (selectedFilter) {
+      case "week":
+        return "This Week"
+      case "month":
+        return "This Month"
+      case "all":
+      default:
+        return "All Feedbacks"
+    }
+  }
+
+  const totalCount = feedbacks.length
+  const thisWeekCount = getThisWeekFeedbacks().length
+  const thisMonthCount = getThisMonthFeedbacks().length
+  const filteredFeedbacks = getFilteredFeedbacks()
 
   const keyMetrics = (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="text-center p-3 rounded-lg bg-blue-50 border border-blue-200">
-        <div className="text-2xl font-bold text-blue-700">{totalCount}</div>
-        <div className="text-sm text-blue-600">Total Feedbacks</div>
-      </div>
-      <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200">
-        <div className="text-2xl font-bold text-green-700">{thisWeekCount}</div>
-        <div className="text-sm text-green-600">This Week</div>
-      </div>
-      <div className="text-center p-3 rounded-lg bg-purple-50 border border-purple-200">
-        <div className="text-2xl font-bold text-purple-700">{thisMonthCount}</div>
-        <div className="text-sm text-purple-600">This Month</div>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+      <button
+        onClick={() => handleCardClick("all")}
+        className={`text-center p-2 rounded-lg border transition-all cursor-pointer hover:shadow-md ${
+          selectedFilter === "all"
+            ? "bg-foreground text-background ring-1 ring-foreground"
+            : "bg-muted/50 border-border hover:bg-muted"
+        }`}
+      >
+        <div className={`text-base font-bold ${selectedFilter === "all" ? "text-background" : "text-foreground"}`}>{totalCount}</div>
+        <div className={`text-sm ${selectedFilter === "all" ? "text-background/70" : "text-muted-foreground"}`}>Total</div>
+      </button>
+      <button
+        onClick={() => handleCardClick("week")}
+        className={`text-center p-2 rounded-lg border transition-all cursor-pointer hover:shadow-md ${
+          selectedFilter === "week"
+            ? "bg-foreground text-background ring-1 ring-foreground"
+            : "bg-muted/50 border-border hover:bg-muted"
+        }`}
+      >
+        <div className={`text-base font-bold ${selectedFilter === "week" ? "text-background" : "text-foreground"}`}>{thisWeekCount}</div>
+        <div className={`text-sm ${selectedFilter === "week" ? "text-background/70" : "text-muted-foreground"}`}>This Week</div>
+      </button>
+      <button
+        onClick={() => handleCardClick("month")}
+        className={`text-center p-2 rounded-lg border transition-all cursor-pointer hover:shadow-md ${
+          selectedFilter === "month"
+            ? "bg-foreground text-background ring-1 ring-foreground"
+            : "bg-muted/50 border-border hover:bg-muted"
+        }`}
+      >
+        <div className={`text-base font-bold ${selectedFilter === "month" ? "text-background" : "text-foreground"}`}>{thisMonthCount}</div>
+        <div className={`text-sm ${selectedFilter === "month" ? "text-background/70" : "text-muted-foreground"}`}>This Month</div>
+      </button>
     </div>
   )
 
   const detailedContent = (
-    <div className="space-y-6">
-      <div className="border rounded-lg">
-        <div
-          className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-          onClick={() => setDetailsOpen(!detailsOpen)}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <h4 className="font-semibold text-sm sm:text-base">Feedback Items</h4>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                ({feedbacks.length})
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  fetchFeedbacks()
-                }}
-                disabled={loading || !config?.notionDatabases?.feedback}
-                className="hidden sm:inline-flex"
-              >
-                {loading ? "..." : "Refresh"}
-              </Button>
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleOpenAdd()
-                }}
-                disabled={!config?.notionDatabases?.feedback}
-                className="text-xs sm:text-sm"
-              >
-                <span className="sm:hidden">+</span>
-                <span className="hidden sm:inline">Add Feedback</span>
-              </Button>
-              {detailsOpen ? (
-                <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-              ) : (
-                <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-              )}
-            </div>
-          </div>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="font-semibold">{getFilterTitle()} ({filteredFeedbacks.length})</h4>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={fetchFeedbacks}
+            disabled={loading || !config?.notionDatabases?.feedback}
+          >
+            {loading ? "..." : "Refresh"}
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleOpenAdd}
+            disabled={!config?.notionDatabases?.feedback}
+          >
+            Add Feedback
+          </Button>
         </div>
+      </div>
 
-        {detailsOpen && (
-          <div className="p-4 pt-0 space-y-4">
-            {!config?.notionDatabases?.feedback ? (
-              <div className="p-8 border rounded-lg text-center border-dashed bg-muted/30">
-                <p className="text-sm text-muted-foreground">
-                  Feedback database not configured. Configure it in Project Settings.
-                </p>
-              </div>
-            ) : feedbacks.length === 0 ? (
-              <div className="p-8 border rounded-lg text-center border-dashed">
-                <p className="text-sm text-muted-foreground">
-                  No feedback recorded yet. Add feedback items to track user responses.
-                </p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Click &ldquo;Add Feedback&rdquo; to get started.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {feedbacks.map((feedback) => (
+      {!config?.notionDatabases?.feedback ? (
+        <div className="p-3 border rounded-lg text-center border-dashed bg-muted/30">
+          <p className="text-sm text-muted-foreground">
+            Feedback database not configured. Configure it in Project Settings.
+          </p>
+        </div>
+      ) : filteredFeedbacks.length === 0 ? (
+        <div className="p-3 border rounded-lg text-center border-dashed">
+          <p className="text-sm text-muted-foreground">
+            {selectedFilter === "all"
+              ? "No feedback recorded yet. Add feedback items to track user responses."
+              : `No feedback for ${getFilterTitle().toLowerCase()}.`}
+          </p>
+        </div>
+      ) : (
+        <div className="border rounded-lg overflow-hidden">
+          <div className="p-3 space-y-2">
+            {filteredFeedbacks.map((feedback) => (
                   <Card key={feedback.id}>
-                    <CardContent className="p-3 sm:p-4">
+                    <CardContent className="p-3 sm:p-2">
                       <div className="space-y-3">
                         {/* Header with title and date */}
                         <div className="flex items-start justify-between gap-2">
@@ -314,10 +350,8 @@ export function UserFeedbackSection() {
                   </Card>
                 ))}
               </div>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
     </div>
   )
 
@@ -325,10 +359,9 @@ export function UserFeedbackSection() {
   if (feedbacks.length === 0) {
     return (
       <>
-        <div className="border rounded-lg p-4 bg-muted/20">
+        <div className="border rounded-lg p-2 bg-muted/20">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">💬</span>
+            <div className="flex items-center gap-2">
               <div>
                 <h3 className="font-semibold text-sm">User Feedback</h3>
                 <p className="text-xs text-muted-foreground">Track and manage user feedback</p>
@@ -349,7 +382,7 @@ export function UserFeedbackSection() {
                 {editingId ? "Update feedback information below." : "Add new user feedback to track."}
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-2 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="title">Title *</Label>
                 <Input
@@ -406,9 +439,11 @@ export function UserFeedbackSection() {
       <PageSection
         title="User Feedback"
         description="Monitor and respond to user feedback and requests"
-        icon="💬"
+        icon=""
         keyMetrics={keyMetrics}
         detailedContent={detailedContent}
+        expanded={expanded}
+        onExpandedChange={setExpanded}
       />
 
       {/* Add/Edit Feedback Dialog */}
@@ -420,7 +455,7 @@ export function UserFeedbackSection() {
               {editingId ? "Update feedback information below." : "Add new user feedback to track."}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-2 py-4">
             <div className="grid gap-2">
               <Label htmlFor="title">Title *</Label>
               <Input

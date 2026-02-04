@@ -24,28 +24,28 @@ interface Link {
 }
 
 const LINK_TYPES = [
-  { value: "notion", label: "Notion", icon: "📓", color: "bg-gray-100 text-gray-700" },
-  { value: "drive", label: "Google Drive", icon: "📁", color: "bg-blue-100 text-blue-700" },
-  { value: "github", label: "GitHub", icon: "💻", color: "bg-purple-100 text-purple-700" },
-  { value: "slack", label: "Slack", icon: "💬", color: "bg-pink-100 text-pink-700" },
-  { value: "figma", label: "Figma", icon: "🎨", color: "bg-purple-100 text-purple-700" },
-  { value: "jira", label: "Jira", icon: "📋", color: "bg-blue-100 text-blue-700" },
-  { value: "confluence", label: "Confluence", icon: "📖", color: "bg-blue-100 text-blue-700" },
-  { value: "trello", label: "Trello", icon: "📊", color: "bg-blue-100 text-blue-700" },
-  { value: "asana", label: "Asana", icon: "✅", color: "bg-red-100 text-red-700" },
-  { value: "miro", label: "Miro", icon: "🖼️", color: "bg-yellow-100 text-yellow-700" },
-  { value: "docs", label: "Documentation", icon: "📄", color: "bg-green-100 text-green-700" },
-  { value: "api", label: "API", icon: "🔌", color: "bg-orange-100 text-orange-700" },
-  { value: "other", label: "Other", icon: "🔗", color: "bg-gray-100 text-gray-700" },
+  { value: "notion", label: "Notion", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "drive", label: "Google Drive", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "github", label: "GitHub", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "slack", label: "Slack", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "figma", label: "Figma", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "jira", label: "Jira", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "confluence", label: "Confluence", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "trello", label: "Trello", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "asana", label: "Asana", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "miro", label: "Miro", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "docs", label: "Documentation", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "api", label: "API", icon: "", color: "bg-muted text-muted-foreground" },
+  { value: "other", label: "Other", icon: "", color: "bg-muted text-muted-foreground" },
 ]
 
 const CATEGORIES = [
-  { value: "database", label: "📊 Databases", emoji: "📊", notionLabel: "Databases" },
-  { value: "tool", label: "🛠️ Tools", emoji: "🛠️", notionLabel: "Tools" },
-  { value: "website", label: "🌐 Apps & Websites", emoji: "🌐", notionLabel: "Apps & Websites" },
-  { value: "social", label: "📱 Social Media", emoji: "📱", notionLabel: "Social Media" },
-  { value: "document", label: "📄 Documentation", emoji: "📄", notionLabel: "Documentation" },
-  { value: "other", label: "🔗 Other Links", emoji: "🔗", notionLabel: "Other Links" },
+  { value: "database", label: "Databases", emoji: "", notionLabel: "Databases" },
+  { value: "tool", label: "Tools", emoji: "", notionLabel: "Tools" },
+  { value: "website", label: "Apps & Websites", emoji: "", notionLabel: "Apps & Websites" },
+  { value: "social", label: "Social Media", emoji: "", notionLabel: "Social Media" },
+  { value: "document", label: "Documentation", emoji: "", notionLabel: "Documentation" },
+  { value: "other", label: "Other Links", emoji: "", notionLabel: "Other Links" },
 ]
 
 export function GuidesDocsSection() {
@@ -89,7 +89,7 @@ export function GuidesDocsSection() {
   // Helper function to get link type info
   const getLinkTypeInfo = (type: string) => {
     const linkType = LINK_TYPES.find(t => t.label === type || t.value === type)
-    return linkType || { icon: "🔗", color: "bg-gray-100 text-gray-700", label: type }
+    return linkType || { icon: "", color: "bg-muted text-muted-foreground", label: type }
   }
 
   // Helper function to extract domain from URL
@@ -419,7 +419,7 @@ export function GuidesDocsSection() {
   }
 
   const keyMetrics = allLinks.length > 0 ? (
-    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
       {CATEGORIES.map((cat) => {
         const count = linksByCategory[cat.value]?.length || 0
         const isSelected = selectedCategory === cat.value
@@ -430,37 +430,24 @@ export function GuidesDocsSection() {
             onClick={() => handleCategoryClick(cat.value)}
             className={`p-2 rounded-lg border text-center transition-all cursor-pointer hover:shadow-md ${
               isSelected
-                ? cat.value === 'database' ? 'ring-2 ring-indigo-400 bg-indigo-100 border-indigo-400 dark:bg-indigo-900' :
-                  cat.value === 'tool' ? 'ring-2 ring-emerald-400 bg-emerald-100 border-emerald-400 dark:bg-emerald-900' :
-                  cat.value === 'website' ? 'ring-2 ring-cyan-400 bg-cyan-100 border-cyan-400 dark:bg-cyan-900' :
-                  cat.value === 'social' ? 'ring-2 ring-pink-400 bg-pink-100 border-pink-400 dark:bg-pink-900' :
-                  cat.value === 'document' ? 'ring-2 ring-amber-400 bg-amber-100 border-amber-400 dark:bg-amber-900' :
-                  'ring-2 ring-gray-400 bg-gray-100 border-gray-400 dark:bg-gray-900'
+                ? 'bg-foreground text-background ring-1 ring-foreground'
                 : 'bg-muted/50 border-border hover:bg-muted'
             }`}
           >
-            <div className="text-xl">{cat.emoji}</div>
-            <div className={`text-lg font-bold ${
-              count > 0
-                ? cat.value === 'database' ? 'text-indigo-600 dark:text-indigo-400' :
-                  cat.value === 'tool' ? 'text-emerald-600 dark:text-emerald-400' :
-                  cat.value === 'website' ? 'text-cyan-600 dark:text-cyan-400' :
-                  cat.value === 'social' ? 'text-pink-600 dark:text-pink-400' :
-                  cat.value === 'document' ? 'text-amber-600 dark:text-amber-400' :
-                  'text-gray-600 dark:text-gray-400'
-                : 'text-gray-400'
+            <div className={`text-sm font-bold ${
+              isSelected ? 'text-background' : count > 0 ? 'text-foreground' : 'text-muted-foreground'
             }`}>
               {count}
             </div>
-            <div className="text-[10px] text-muted-foreground truncate">
-              {cat.label.replace(cat.emoji, "").trim()}
+            <div className={`text-[10px] truncate ${isSelected ? 'text-background/70' : 'text-muted-foreground'}`}>
+              {cat.label}
             </div>
           </button>
         )
       })}
     </div>
   ) : (
-    <div className="text-center p-4 rounded-lg bg-muted/50 border border-dashed">
+    <div className="text-center p-2 rounded-lg bg-muted/50 border border-dashed">
       <p className="text-sm text-muted-foreground">No links yet</p>
     </div>
   )
@@ -469,10 +456,10 @@ export function GuidesDocsSection() {
   const selectedCategoryInfo = CATEGORIES.find(c => c.value === selectedCategory)
 
   const detailedContent = (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h4 className="font-semibold">
-          {selectedCategoryInfo?.emoji} {selectedCategoryInfo?.label.replace(selectedCategoryInfo.emoji, "").trim()} ({filteredLinks.length})
+          {selectedCategoryInfo?.label} ({filteredLinks.length})
         </h4>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -492,7 +479,7 @@ export function GuidesDocsSection() {
                 }
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-2 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="category">Category</Label>
                 <Select
@@ -591,7 +578,7 @@ export function GuidesDocsSection() {
       </div>
 
       {filteredLinks.length === 0 ? (
-        <div className="p-8 border rounded-lg text-center border-dashed">
+        <div className="p-3 border rounded-lg text-center border-dashed">
           <p className="text-sm text-muted-foreground">
             No links in this category. Click &ldquo;Add Link&rdquo; to add one.
           </p>
@@ -607,17 +594,17 @@ export function GuidesDocsSection() {
               return (
                 <div
                   key={link.id}
-                  className="flex items-center gap-3 text-sm p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border cursor-pointer"
+                  className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border cursor-pointer"
                   onClick={() => handleViewLink(link)}
                 >
-                  <div className={`text-xl flex-shrink-0 p-1.5 rounded ${typeInfo.color}`}>
-                    {typeInfo.icon}
+                  <div className={`text-xs flex-shrink-0 p-1.5 rounded ${typeInfo.color}`}>
+                    {typeInfo.label.substring(0, 2).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h5 className="font-medium truncate">{link.title}</h5>
                     <p className="text-xs text-muted-foreground truncate">{link.description || domain}</p>
                   </div>
-                  <span className="text-xs text-blue-600 font-mono hidden sm:block flex-shrink-0">
+                  <span className="text-xs text-muted-foreground font-mono hidden sm:block flex-shrink-0">
                     {domain}
                   </span>
                   <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -625,18 +612,18 @@ export function GuidesDocsSection() {
                       size="sm"
                       variant="ghost"
                       onClick={() => window.open(link.url, "_blank")}
-                      className="h-7 w-7 p-0"
+                      className="h-8 w-8 p-0"
                     >
-                      <ExternalLink className="h-3.5 w-3.5" />
+                      <ExternalLink className="h-4 w-4" />
                     </Button>
                     {isConfigLink && link.id !== "notion-config" && (
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleEditConfigLink(link.id === "drive-config" ? "drive" : "github")}
-                        className="h-7 w-7 p-0 text-xs"
+                        className="h-8 w-8 p-0 text-xs"
                       >
-                        ✏️
+                        Edit
                       </Button>
                     )}
                     {!isConfigLink && (
@@ -645,17 +632,17 @@ export function GuidesDocsSection() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleOpenEdit(link)}
-                          className="h-7 w-7 p-0 text-xs"
+                          className="h-8 w-8 p-0 text-xs"
                         >
-                          ✏️
+                          Edit
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDeleteLink(link.id)}
-                          className="h-7 w-7 p-0 text-xs text-red-500 hover:text-red-700"
+                          className="h-8 w-8 p-0 text-xs text-muted-foreground hover:text-foreground"
                         >
-                          🗑️
+                          Del
                         </Button>
                       </>
                     )}
@@ -674,7 +661,7 @@ export function GuidesDocsSection() {
       <PageSection
         title="Guides and Docs"
         description="Important links and references for project resources"
-        icon="📚"
+        icon=""
         keyMetrics={keyMetrics}
         detailedContent={detailedContent}
         expanded={expanded}

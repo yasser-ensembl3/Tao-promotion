@@ -45,11 +45,11 @@ interface OrderRecord {
 type MetricKey = "Total Sales" | "Net Sales" | "Paid Orders" | "Average Order Value" | "Returning Customer Rate"
 
 const METRIC_CONFIGS: Record<MetricKey, { label: string; format: (v: number) => string; color: string }> = {
-  "Total Sales": { label: "Total Sales", format: (v) => `$${v.toLocaleString()}`, color: "#10b981" },
-  "Net Sales": { label: "Net Sales", format: (v) => `$${v.toLocaleString()}`, color: "#3b82f6" },
-  "Paid Orders": { label: "Orders", format: (v) => v.toLocaleString(), color: "#8b5cf6" },
-  "Average Order Value": { label: "AOV", format: (v) => `$${v.toFixed(2)}`, color: "#f59e0b" },
-  "Returning Customer Rate": { label: "Return Rate", format: (v) => `${v.toFixed(1)}%`, color: "#ec4899" },
+  "Total Sales": { label: "Total Sales", format: (v) => `$${v.toLocaleString()}`, color: "#666666" },
+  "Net Sales": { label: "Net Sales", format: (v) => `$${v.toLocaleString()}`, color: "#666666" },
+  "Paid Orders": { label: "Orders", format: (v) => v.toLocaleString(), color: "#666666" },
+  "Average Order Value": { label: "AOV", format: (v) => `$${v.toFixed(2)}`, color: "#666666" },
+  "Returning Customer Rate": { label: "Return Rate", format: (v) => `${v.toFixed(1)}%`, color: "#666666" },
 }
 
 export function SalesTrackingSection() {
@@ -107,7 +107,7 @@ export function SalesTrackingSection() {
   }))
 
   const keyMetrics = latestRecord ? (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
       {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((metric) => {
         const config = METRIC_CONFIGS[metric]
         const value = getMetricValue(latestRecord, metric)
@@ -117,19 +117,19 @@ export function SalesTrackingSection() {
           <button
             key={metric}
             onClick={() => handleCardClick(metric)}
-            className={`text-center p-3 rounded-lg transition-all cursor-pointer hover:shadow-md ${
+            className={`text-center p-2 rounded-lg transition-all cursor-pointer hover:shadow-md ${
               isSelected
-                ? "bg-emerald-600 border-emerald-700 ring-2 ring-emerald-400"
-                : "bg-emerald-50 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950 dark:border-emerald-800 dark:hover:bg-emerald-900"
+                ? "bg-foreground text-background ring-1 ring-foreground"
+                : "bg-muted/50 border-border hover:bg-muted"
             } border`}
           >
-            <div className={`text-xl font-bold ${isSelected ? "text-white" : "text-emerald-700 dark:text-emerald-300"}`}>
+            <div className={`text-base font-bold ${isSelected ? "text-background" : "text-foreground"}`}>
               {config.format(value)}
             </div>
-            <div className={`text-xs ${isSelected ? "text-emerald-100" : "text-emerald-600 dark:text-emerald-400"}`}>
+            <div className={`text-xs ${isSelected ? "text-background/70" : "text-muted-foreground"}`}>
               {config.label}
             </div>
-            <div className={`text-[10px] ${isSelected ? "text-emerald-200" : "text-muted-foreground"}`}>
+            <div className={`text-[10px] ${isSelected ? "text-background/50" : "text-muted-foreground"}`}>
               {latestRecord.Period}
             </div>
           </button>
@@ -143,8 +143,8 @@ export function SalesTrackingSection() {
   )
 
   const detailedContent = (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-2">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <h4 className="font-semibold">Sales Trend</h4>
           <span className="text-xs text-muted-foreground">({records.length} periods)</span>
@@ -160,30 +160,30 @@ export function SalesTrackingSection() {
       </div>
 
       {!config?.notionDatabases?.salesTracking ? (
-        <div className="p-8 border rounded-lg text-center border-dashed bg-muted/30">
+        <div className="p-3 border rounded-lg text-center border-dashed bg-muted/30">
           <p className="text-sm text-muted-foreground">
             Sales Tracking database not configured.
           </p>
         </div>
       ) : loading ? (
-        <div className="p-8 border rounded-lg text-center">
+        <div className="p-3 border rounded-lg text-center">
           <p className="text-sm text-muted-foreground">Loading sales data...</p>
         </div>
       ) : records.length === 0 ? (
-        <div className="p-8 border rounded-lg text-center border-dashed">
+        <div className="p-3 border rounded-lg text-center border-dashed">
           <p className="text-sm text-muted-foreground">No sales data available</p>
         </div>
       ) : (
-        <div className="border rounded-lg p-4">
+        <div className="border rounded-lg p-2">
           {/* Selected metric display */}
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-2 flex items-center justify-between">
             <div>
-              <h5 className="text-lg font-semibold">{METRIC_CONFIGS[selectedMetric].label}</h5>
+              <h5 className="text-sm font-semibold">{METRIC_CONFIGS[selectedMetric].label}</h5>
               <p className="text-xs text-muted-foreground">Click a card above to switch metrics</p>
             </div>
             {latestRecord && (
               <div className="text-right">
-                <p className="text-3xl font-bold text-emerald-600">
+                <p className="text-xl font-bold text-foreground">
                   {METRIC_CONFIGS[selectedMetric].format(getMetricValue(latestRecord, selectedMetric))}
                 </p>
                 <p className="text-xs text-muted-foreground">Latest: {latestRecord.Period}</p>
@@ -192,7 +192,7 @@ export function SalesTrackingSection() {
           </div>
 
           {/* Chart */}
-          <div className="h-56 sm:h-72 md:h-80 w-full">
+          <div className="h-40 sm:h-48 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -220,18 +220,18 @@ export function SalesTrackingSection() {
 
           {/* Breakdown for latest period */}
           {latestRecord && (
-            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="p-3 bg-muted/30 rounded-lg">
                 <p className="text-xs text-muted-foreground">Gross Sales</p>
                 <p className="font-semibold">${(latestRecord["Gross Sales"] ?? 0).toLocaleString()}</p>
               </div>
               <div className="p-3 bg-muted/30 rounded-lg">
                 <p className="text-xs text-muted-foreground">Discounts</p>
-                <p className="font-semibold text-red-500">-${(latestRecord.Discounts ?? 0).toLocaleString()}</p>
+                <p className="font-semibold text-foreground">-${(latestRecord.Discounts ?? 0).toLocaleString()}</p>
               </div>
               <div className="p-3 bg-muted/30 rounded-lg">
                 <p className="text-xs text-muted-foreground">Returns</p>
-                <p className="font-semibold text-red-500">-${(latestRecord.Returns ?? 0).toLocaleString()}</p>
+                <p className="font-semibold text-foreground">-${(latestRecord.Returns ?? 0).toLocaleString()}</p>
               </div>
               <div className="p-3 bg-muted/30 rounded-lg">
                 <p className="text-xs text-muted-foreground">Shipping + Tax</p>
@@ -241,8 +241,8 @@ export function SalesTrackingSection() {
           )}
 
           {/* Orders section */}
-          <div className="mt-6 border-t pt-4">
-            <div className="flex items-center justify-between mb-3">
+          <div className="mt-2 border-t pt-4">
+            <div className="flex items-center justify-between mb-2">
               <h5 className="text-sm font-semibold">Orders</h5>
               <Button
                 size="sm"
@@ -256,41 +256,41 @@ export function SalesTrackingSection() {
             </div>
 
             {!config?.notionDatabases?.orders ? (
-              <div className="p-4 border rounded-lg text-center border-dashed bg-muted/30">
+              <div className="p-2 border rounded-lg text-center border-dashed bg-muted/30">
                 <p className="text-xs text-muted-foreground">
                   Orders database not configured. Add NEXT_PUBLIC_NOTION_DB_ORDERS to your environment.
                 </p>
               </div>
             ) : ordersLoading ? (
-              <div className="p-4 border rounded-lg text-center">
+              <div className="p-2 border rounded-lg text-center">
                 <p className="text-xs text-muted-foreground">Loading orders...</p>
               </div>
             ) : orders.length === 0 ? (
-              <div className="p-4 border rounded-lg text-center border-dashed">
+              <div className="p-2 border rounded-lg text-center border-dashed">
                 <p className="text-xs text-muted-foreground">No orders yet</p>
               </div>
             ) : (
               <>
                 {/* Key metrics summary */}
-                <div className="grid grid-cols-4 gap-2 mb-3">
-                  <div className="p-2 bg-emerald-50 dark:bg-emerald-950 rounded-lg text-center">
-                    <p className="text-lg font-bold text-emerald-600">{orders.length}</p>
+                <div className="grid grid-cols-4 gap-2 mb-2">
+                  <div className="p-2 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm font-bold text-foreground">{orders.length}</p>
                     <p className="text-[10px] text-muted-foreground">Orders</p>
                   </div>
-                  <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded-lg text-center">
-                    <p className="text-lg font-bold text-blue-600">
+                  <div className="p-2 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm font-bold text-foreground">
                       {orders.reduce((sum, o) => sum + (Number(o["Items"]) || 0), 0)}
                     </p>
                     <p className="text-[10px] text-muted-foreground">Items</p>
                   </div>
-                  <div className="p-2 bg-purple-50 dark:bg-purple-950 rounded-lg text-center">
-                    <p className="text-lg font-bold text-purple-600">
+                  <div className="p-2 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm font-bold text-foreground">
                       ${orders.reduce((sum, o) => sum + (Number(o["Total $"]) || 0), 0).toFixed(0)}
                     </p>
                     <p className="text-[10px] text-muted-foreground">Revenue</p>
                   </div>
-                  <div className="p-2 bg-amber-50 dark:bg-amber-950 rounded-lg text-center">
-                    <p className="text-lg font-bold text-amber-600">
+                  <div className="p-2 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm font-bold text-foreground">
                       {orders.filter(o => o["Fulfillment"] === "Fulfilled").length}
                     </p>
                     <p className="text-[10px] text-muted-foreground">Fulfilled</p>
@@ -305,7 +305,7 @@ export function SalesTrackingSection() {
                       href={order.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 text-xs p-2 rounded bg-muted/30 hover:bg-muted/50 transition-colors"
+                      className="flex items-center gap-2 text-xs p-2 rounded bg-muted/30 hover:bg-muted/50 transition-colors"
                     >
                       <span className="font-mono text-muted-foreground w-14 flex-shrink-0">
                         {order["Order"] || "-"}
@@ -316,26 +316,16 @@ export function SalesTrackingSection() {
                       <span className="text-muted-foreground w-20 text-right flex-shrink-0">
                         {order["Date"] || "-"}
                       </span>
-                      <span className="text-blue-600 w-8 text-center flex-shrink-0">
+                      <span className="text-foreground w-8 text-center flex-shrink-0">
                         {order["Items"] || 0}x
                       </span>
-                      <span className="font-semibold text-emerald-600 w-12 text-right flex-shrink-0">
+                      <span className="font-semibold text-foreground w-12 text-right flex-shrink-0">
                         ${Number(order["Total $"] || 0).toFixed(0)}
                       </span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${
-                        order["Payment"] === "Paid"
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
-                          : order["Payment"] === "Refunded"
-                          ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-                      }`}>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 bg-muted text-muted-foreground">
                         {order["Payment"] || "Pending"}
                       </span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${
-                        order["Fulfillment"] === "Fulfilled"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                          : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
-                      }`}>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 bg-muted text-muted-foreground">
                         {order["Fulfillment"] || "Unfulfilled"}
                       </span>
                     </a>
@@ -365,7 +355,7 @@ export function SalesTrackingSection() {
     <PageSection
       title="Sales"
       description="Shopify sales and order tracking"
-      icon="💰"
+      icon=""
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
       expanded={expanded}

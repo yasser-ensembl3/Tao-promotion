@@ -7,30 +7,30 @@ import { PageSection } from "./page-section"
 
 export function KnowledgeSection() {
   const keyMetrics = (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
       <div className="text-center">
-        <div className="text-2xl font-bold text-muted-foreground">-</div>
+        <div className="text-base font-bold text-muted-foreground">-</div>
         <div className="text-sm text-muted-foreground">Documents</div>
       </div>
       <div className="text-center">
-        <div className="text-2xl font-bold text-muted-foreground">-</div>
+        <div className="text-base font-bold text-muted-foreground">-</div>
         <div className="text-sm text-muted-foreground">Knowledge Areas</div>
       </div>
       <div className="text-center">
-        <div className="text-2xl font-bold text-muted-foreground">-</div>
+        <div className="text-base font-bold text-muted-foreground">-</div>
         <div className="text-sm text-muted-foreground">Last Updated</div>
       </div>
     </div>
   )
 
   const detailedContent = (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div>
         <div className="flex items-center justify-between mb-3">
           <h4 className="font-semibold">Recent Documents</h4>
           <Button size="sm">Create New</Button>
         </div>
-        <div className="p-8 border rounded-lg text-center">
+        <div className="p-3 border rounded-lg text-center">
           <p className="text-sm text-muted-foreground">
             No documents available. Documents will be fetched from Google Drive and Notion.
           </p>
@@ -42,7 +42,7 @@ export function KnowledgeSection() {
 
       <div>
         <h4 className="font-semibold mb-3">Knowledge Categories</h4>
-        <div className="p-4 border rounded-lg text-center">
+        <div className="p-2 border rounded-lg text-center">
           <p className="text-sm text-muted-foreground">
             Categories will be automatically organized once documents are loaded.
           </p>
@@ -65,7 +65,7 @@ export function KnowledgeSection() {
     <PageSection
       title="Knowledge Base"
       description="Create clear instructions and context for all collaborators"
-      icon="📚"
+      icon=""
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
     />

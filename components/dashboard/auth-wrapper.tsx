@@ -23,7 +23,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-xl font-semibold mb-2">Loading...</div>
+          <div className="text-sm font-semibold mb-2">Loading...</div>
           <div className="text-muted-foreground">Please wait</div>
         </div>
       </div>

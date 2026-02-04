@@ -41,13 +41,13 @@ export function RecurringTasksSection() {
     frequency: ""
   })
 
-  // Frequency options with colors
+  // Frequency options
   const frequencyOptions = [
-    { value: "Daily", label: "Daily", color: "blue", emoji: "📅" },
-    { value: "Weekly", label: "Weekly", color: "green", emoji: "📆" },
-    { value: "Monthly", label: "Monthly", color: "purple", emoji: "🗓️" },
-    { value: "Quarterly", label: "Quarterly", color: "orange", emoji: "📊" },
-    { value: "Custom", label: "Custom", color: "gray", emoji: "⚙️" },
+    { value: "Daily", label: "Daily", color: "gray", emoji: "" },
+    { value: "Weekly", label: "Weekly", color: "gray", emoji: "" },
+    { value: "Monthly", label: "Monthly", color: "gray", emoji: "" },
+    { value: "Quarterly", label: "Quarterly", color: "gray", emoji: "" },
+    { value: "Custom", label: "Custom", color: "gray", emoji: "" },
   ]
 
   // Fetch tasks with 60s cache
@@ -108,13 +108,7 @@ export function RecurringTasksSection() {
 
   // Get frequency badge color
   const getFrequencyBadgeColor = (frequency: string | null) => {
-    switch (frequency) {
-      case "Daily": return "bg-blue-100 text-blue-700"
-      case "Weekly": return "bg-green-100 text-green-700"
-      case "Monthly": return "bg-purple-100 text-purple-700"
-      case "Quarterly": return "bg-orange-100 text-orange-700"
-      default: return "bg-gray-100 text-gray-600"
-    }
+    return "bg-muted text-muted-foreground"
   }
 
   const handleCreateTask = async () => {
@@ -161,7 +155,7 @@ export function RecurringTasksSection() {
   const filteredTasks = getFilteredTasks()
 
   const keyMetrics = tasks.length > 0 ? (
-    <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
       {frequencyOptions.map((option) => {
         const count = tasksByFrequency[option.value]?.length || 0
         const isSelected = selectedFrequency === option.value
@@ -172,27 +166,16 @@ export function RecurringTasksSection() {
             onClick={() => handleFrequencyClick(option.value)}
             className={`p-2 rounded-lg border text-center transition-all cursor-pointer hover:shadow-md ${
               isSelected
-                ? option.color === 'blue' ? 'ring-2 ring-blue-400 bg-blue-100 border-blue-400 dark:bg-blue-900' :
-                  option.color === 'green' ? 'ring-2 ring-green-400 bg-green-100 border-green-400 dark:bg-green-900' :
-                  option.color === 'purple' ? 'ring-2 ring-purple-400 bg-purple-100 border-purple-400 dark:bg-purple-900' :
-                  option.color === 'orange' ? 'ring-2 ring-orange-400 bg-orange-100 border-orange-400 dark:bg-orange-900' :
-                  'ring-2 ring-gray-400 bg-gray-100 border-gray-400 dark:bg-gray-800'
+                ? 'bg-foreground text-background ring-1 ring-foreground'
                 : 'bg-muted/50 border-border hover:bg-muted'
             }`}
           >
-            <div className="text-xl">{option.emoji}</div>
-            <div className={`text-lg font-bold ${
-              count > 0
-                ? option.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
-                  option.color === 'green' ? 'text-green-600 dark:text-green-400' :
-                  option.color === 'purple' ? 'text-purple-600 dark:text-purple-400' :
-                  option.color === 'orange' ? 'text-orange-600 dark:text-orange-400' :
-                  'text-gray-600 dark:text-gray-400'
-                : 'text-gray-400'
+            <div className={`text-sm font-bold ${
+              isSelected ? 'text-background' : count > 0 ? 'text-foreground' : 'text-muted-foreground'
             }`}>
               {count}
             </div>
-            <div className="text-[10px] text-muted-foreground truncate">
+            <div className={`text-[10px] truncate ${isSelected ? 'text-background/70' : 'text-muted-foreground'}`}>
               {option.label}
             </div>
           </button>
@@ -200,16 +183,16 @@ export function RecurringTasksSection() {
       })}
     </div>
   ) : (
-    <div className="text-center p-4 rounded-lg bg-muted/50 border border-dashed">
+    <div className="text-center p-2 rounded-lg bg-muted/50 border border-dashed">
       <p className="text-sm text-muted-foreground">No recurring tasks yet</p>
     </div>
   )
 
   const detailedContent = (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h4 className="font-semibold">
-          {selectedFrequencyInfo?.emoji} {selectedFrequencyInfo?.label || "All Recurring Tasks"} ({filteredTasks.length})
+          {selectedFrequencyInfo?.label || "All Recurring Tasks"} ({filteredTasks.length})
         </h4>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={fetchTasks} disabled={loading}>
@@ -228,7 +211,7 @@ export function RecurringTasksSection() {
                   Add a new recurring task to your Notion database.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-2 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="title">Name *</Label>
                   <Input
@@ -247,7 +230,7 @@ export function RecurringTasksSection() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
                   <div className="grid gap-2">
                     <Label htmlFor="frequency">Frequency *</Label>
                     <Select
@@ -260,7 +243,7 @@ export function RecurringTasksSection() {
                       <SelectContent>
                         {frequencyOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
-                            {option.emoji} {option.label}
+                            {option.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -328,13 +311,13 @@ export function RecurringTasksSection() {
       </div>
 
       {error && (
-        <div className="p-4 border border-red-500 rounded-lg bg-red-500/10">
-          <p className="text-sm text-red-500">{error.message || String(error)}</p>
+        <div className="p-2 border border-border rounded-lg bg-muted/30">
+          <p className="text-sm text-muted-foreground">{error.message || String(error)}</p>
         </div>
       )}
 
       {filteredTasks.length === 0 ? (
-        <div className="p-8 border rounded-lg text-center border-dashed">
+        <div className="p-3 border rounded-lg text-center border-dashed">
           <p className="text-sm text-muted-foreground">
             {!config?.notionDatabases?.recurringTasks
               ? "Recurring tasks database not configured."
@@ -347,16 +330,10 @@ export function RecurringTasksSection() {
             {filteredTasks.map((task) => (
               <div
                 key={task.id}
-                className="flex items-center gap-3 text-sm p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
+                className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
               >
                 {/* Frequency indicator */}
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                  task.frequency === "Daily" ? "bg-blue-500" :
-                  task.frequency === "Weekly" ? "bg-green-500" :
-                  task.frequency === "Monthly" ? "bg-purple-500" :
-                  task.frequency === "Quarterly" ? "bg-orange-500" :
-                  "bg-gray-400"
-                }`} />
+                <div className="w-2 h-2 rounded-full flex-shrink-0 bg-muted-foreground" />
 
                 {/* Task info */}
                 <div className="flex-1 min-w-0">
@@ -400,7 +377,7 @@ export function RecurringTasksSection() {
                   rel="noopener noreferrer"
                   className="p-1.5 rounded hover:bg-muted flex-shrink-0"
                 >
-                  <ExternalLink className="h-4 w-4 text-blue-500" />
+                  <ExternalLink className="h-4 w-4 text-muted-foreground" />
                 </a>
               </div>
             ))}
@@ -414,7 +391,7 @@ export function RecurringTasksSection() {
     <PageSection
       title="Recurring Tasks"
       description="Track recurring tasks from Notion"
-      icon="🔄"
+      icon=""
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
       expanded={expanded}

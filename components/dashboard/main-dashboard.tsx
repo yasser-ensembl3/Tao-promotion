@@ -41,7 +41,7 @@ export function MainDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="text-2xl font-semibold mb-2">Loading...</div>
+          <div className="text-base font-semibold mb-2">Loading...</div>
           <div className="text-muted-foreground">Please wait while we load your dashboard</div>
         </div>
       </div>
@@ -54,9 +54,9 @@ export function MainDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-3 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-6">
+      <div className="container mx-auto py-2 sm:py-3 px-2 sm:px-3 space-y-2 sm:space-y-3">
         <DashboardHeader />
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-2 sm:space-y-3">
           <OrdersSection />
           <GoalsMetricsSection />
           <SalesTrackingSection />

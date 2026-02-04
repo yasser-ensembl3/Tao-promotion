@@ -41,19 +41,19 @@ export function DriveSection() {
   )
 
   const keyMetrics = data ? (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-      <div className="text-center p-3 bg-muted/50 rounded-lg">
-        <div className="text-2xl font-bold">{data.totalFiles}</div>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+      <div className="text-center p-2 bg-muted/50 rounded-lg">
+        <div className="text-base font-bold">{data.totalFiles}</div>
         <div className="text-xs text-muted-foreground">Total Files</div>
       </div>
-      <div className="text-center p-3 bg-muted/50 rounded-lg">
-        <div className="text-2xl font-bold">
+      <div className="text-center p-2 bg-muted/50 rounded-lg">
+        <div className="text-base font-bold">
           {data.files.filter((f) => f.isDocument).length}
         </div>
         <div className="text-xs text-muted-foreground">Documents</div>
       </div>
-      <div className="text-center p-3 bg-muted/50 rounded-lg">
-        <div className="text-2xl font-bold">
+      <div className="text-center p-2 bg-muted/50 rounded-lg">
+        <div className="text-base font-bold">
           {data.files.filter((f) => f.isFolder).length}
         </div>
         <div className="text-xs text-muted-foreground">Folders</div>
@@ -77,7 +77,7 @@ export function DriveSection() {
   }
 
   const detailedContent = (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {loading && (
         <div className="text-center py-8">
           <div className="text-muted-foreground">Loading Google Drive data...</div>
@@ -85,7 +85,7 @@ export function DriveSection() {
       )}
 
       {error && (
-        <div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
+        <div className="p-2 border border-destructive/50 rounded-lg bg-destructive/10">
           <div className="flex items-center space-x-2 text-destructive">
             <AlertCircle className="h-4 w-4" />
             <span className="text-sm">{error.message || "Failed to fetch Google Drive data"}</span>
@@ -116,7 +116,7 @@ export function DriveSection() {
                 </Button>
               </div>
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-2">
                   <div className="flex items-center space-x-3">
                     <Folder className="h-5 w-5 text-muted-foreground" />
                     <div>
@@ -181,7 +181,7 @@ export function DriveSection() {
     <PageSection
       title="Google Drive"
       description="Browse and access project documentation from Google Drive"
-      icon="📁"
+      icon=""
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
     />

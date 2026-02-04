@@ -193,26 +193,26 @@ export function MetricsSection() {
   const latestMetrics = getLatestMetrics()
 
   const keyMetrics = latestMetrics.length > 0 ? (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
       {latestMetrics.map((metric) => {
         const isSelected = selectedMetricType === metric.type
         return (
           <button
             key={metric.id}
             onClick={() => handleCardClick(metric.type)}
-            className={`text-center p-3 rounded-lg transition-all cursor-pointer hover:shadow-md ${
+            className={`text-center p-2 rounded-lg transition-all cursor-pointer hover:shadow-md ${
               isSelected
-                ? 'bg-blue-600 border-blue-700 ring-2 ring-blue-400'
-                : 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+                ? 'bg-foreground text-background ring-1 ring-foreground'
+                : 'bg-muted/50 border-border hover:bg-muted'
             } border`}
           >
-            <div className={`text-2xl font-bold ${isSelected ? 'text-white' : 'text-blue-700'}`}>
+            <div className={`text-base font-bold ${isSelected ? 'text-background' : 'text-foreground'}`}>
               {metric.value}
             </div>
-            <div className={`text-xs mb-1 ${isSelected ? 'text-blue-100' : 'text-blue-600'}`}>
+            <div className={`text-xs mb-1 ${isSelected ? 'text-background/70' : 'text-muted-foreground'}`}>
               {metric.type}
             </div>
-            <div className={`text-[10px] ${isSelected ? 'text-blue-200' : 'text-muted-foreground'}`}>
+            <div className={`text-[10px] ${isSelected ? 'text-background/50' : 'text-muted-foreground'}`}>
               {formatDate(metric.date)}
             </div>
           </button>
@@ -220,15 +220,15 @@ export function MetricsSection() {
       })}
     </div>
   ) : (
-    <div className="text-center p-6 rounded-lg bg-muted/50 border border-dashed">
+    <div className="text-center p-2 rounded-lg bg-muted/50 border border-dashed">
       <p className="text-sm text-muted-foreground">No metrics yet. Add your first metric to get started.</p>
     </div>
   )
 
   const detailedContent = (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <h4 className="font-semibold">Metrics Chart</h4>
             <span className="text-xs text-muted-foreground">
@@ -255,15 +255,15 @@ export function MetricsSection() {
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-2">
             {!config?.notionDatabases?.metrics ? (
-              <div className="p-8 border rounded-lg text-center border-dashed bg-muted/30">
+              <div className="p-3 border rounded-lg text-center border-dashed bg-muted/30">
                 <p className="text-sm text-muted-foreground">
                   Metrics database not configured. Configure it in Project Settings.
                 </p>
               </div>
             ) : loading ? (
-              <div className="p-8 border rounded-lg text-center">
+              <div className="p-3 border rounded-lg text-center">
                 <p className="text-sm text-muted-foreground">Loading metrics...</p>
               </div>
             ) : (() => {
@@ -272,7 +272,7 @@ export function MetricsSection() {
 
               if (metricTypes.length === 0) {
                 return (
-                  <div className="p-8 border rounded-lg text-center border-dashed">
+                  <div className="p-3 border rounded-lg text-center border-dashed">
                     <p className="text-sm text-muted-foreground mb-2">
                       No metrics yet
                     </p>
@@ -303,13 +303,13 @@ export function MetricsSection() {
               return (
                 <div className="border rounded-lg p-4">
                   {/* Selected metric display */}
-                  <div className="mb-4 flex items-center justify-between">
+                  <div className="mb-2 flex items-center justify-between">
                     <div>
-                      <h5 className="text-lg font-semibold capitalize">{currentType}</h5>
+                      <h5 className="text-sm font-semibold capitalize">{currentType}</h5>
                       <p className="text-xs text-muted-foreground">Click on a card above to switch metrics</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-bold text-blue-700">{latestValue}</p>
+                      <p className="text-xl font-bold text-foreground">{latestValue}</p>
                       {metricsForType.length > 0 && (
                         <p className="text-xs text-muted-foreground">
                           as of {formatDate(metricsForType[0].date)}
@@ -319,7 +319,7 @@ export function MetricsSection() {
                   </div>
 
                   {/* Chart */}
-                  <div className="h-56 sm:h-72 md:h-80 w-full">
+                  <div className="h-40 sm:h-48 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={chartData}
@@ -343,9 +343,9 @@ export function MetricsSection() {
                         <Line
                           type="monotone"
                           dataKey="value"
-                          stroke="#2563eb"
+                          stroke="#666666"
                           strokeWidth={2}
-                          dot={{ fill: '#2563eb', r: 4 }}
+                          dot={{ fill: '#666666', r: 4 }}
                           activeDot={{ r: 6 }}
                         />
                       </LineChart>
@@ -353,7 +353,7 @@ export function MetricsSection() {
                   </div>
 
                   {/* Data table */}
-                  <div className="mt-4">
+                  <div className="mt-2">
                     <p className="text-xs font-medium text-muted-foreground mb-2">Recent Entries</p>
                     <div className="space-y-1">
                       {metricsForType.slice(0, 5).map((metric) => (
@@ -367,9 +367,9 @@ export function MetricsSection() {
                             href={metric.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-500 hover:underline"
+                            className="text-muted-foreground hover:underline"
                           >
-                            View →
+                            View
                           </a>
                         </div>
                       ))}
@@ -393,7 +393,7 @@ export function MetricsSection() {
       <PageSection
         title="Metrics"
         description="Track input metrics and actions over time"
-        icon="💪"
+        icon=""
         keyMetrics={keyMetrics}
         detailedContent={detailedContent}
         expanded={expanded}
@@ -410,7 +410,7 @@ export function MetricsSection() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-2 py-4">
             <div className="space-y-2">
               <Label htmlFor="metric-type">Type *</Label>
               <Input

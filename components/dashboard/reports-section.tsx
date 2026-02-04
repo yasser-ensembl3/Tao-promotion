@@ -86,29 +86,29 @@ export function ReportsSection() {
   const latestReport = reports[0]
 
   const keyMetrics = (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="text-center p-3 rounded-lg bg-blue-50 border border-blue-200">
-        <div className="text-2xl font-bold text-blue-700">{reports.length}</div>
-        <div className="text-sm text-blue-600">Reports Generated</div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+      <div className="text-center p-2 rounded-lg bg-muted/50 border border-border">
+        <div className="text-base font-bold text-foreground">{reports.length}</div>
+        <div className="text-sm text-muted-foreground">Reports Generated</div>
       </div>
-      <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200">
-        <div className="text-2xl font-bold text-green-700">{config?.notionDatabases?.tasks ? "✓" : "—"}</div>
-        <div className="text-sm text-green-600">Data Source</div>
+      <div className="text-center p-2 rounded-lg bg-muted/50 border border-border">
+        <div className="text-base font-bold text-foreground">{config?.notionDatabases?.tasks ? "Yes" : "No"}</div>
+        <div className="text-sm text-muted-foreground">Data Source</div>
       </div>
-      <div className="text-center p-3 rounded-lg bg-purple-50 border border-purple-200">
-        <div className="text-2xl font-bold text-purple-700">
+      <div className="text-center p-2 rounded-lg bg-muted/50 border border-border">
+        <div className="text-base font-bold text-foreground">
           {latestReport ? new Date(latestReport.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "—"}
         </div>
-        <div className="text-sm text-purple-600">Latest Report</div>
+        <div className="text-sm text-muted-foreground">Latest Report</div>
       </div>
     </div>
   )
 
   const detailedContent = (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div className="border rounded-lg">
         <div
-          className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+          className="flex items-center justify-between p-2 cursor-pointer hover:bg-muted/50 transition-colors"
           onClick={() => setDetailsOpen(!detailsOpen)}
         >
           <div className="flex items-center gap-2">
@@ -133,15 +133,15 @@ export function ReportsSection() {
         </div>
 
         {detailsOpen && (
-          <div className="p-4 pt-0 space-y-4">
+          <div className="p-2 pt-0 space-y-2">
             {error && (
-              <div className="p-4 border border-red-500 rounded-lg bg-red-500/10">
-                <p className="text-sm text-red-500">{error}</p>
+              <div className="p-2 border border-border rounded-lg bg-muted/30">
+                <p className="text-sm text-muted-foreground">{error}</p>
               </div>
             )}
 
             {!config?.notionDatabases?.tasks && (
-              <div className="p-4 border border-dashed rounded-lg bg-muted/30">
+              <div className="p-2 border border-dashed rounded-lg bg-muted/30">
                 <p className="text-sm text-muted-foreground">
                   Configure your Notion Tasks database in Project Settings to generate AI-powered reports from your task data.
                 </p>
@@ -149,14 +149,14 @@ export function ReportsSection() {
             )}
 
             {generating ? (
-              <div className="p-8 border rounded-lg text-center">
+              <div className="p-3 border rounded-lg text-center">
                 <div className="flex items-center justify-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                   <p className="text-sm text-muted-foreground">Generating your weekly report with AI...</p>
                 </div>
               </div>
             ) : reports.length === 0 ? (
-              <div className="p-8 border rounded-lg text-center border-dashed">
+              <div className="p-3 border rounded-lg text-center border-dashed">
                 <p className="text-sm text-muted-foreground">
                   No reports generated yet.
                 </p>
@@ -165,14 +165,14 @@ export function ReportsSection() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {reports.map((report) => (
                   <Card key={report.id} className="relative group">
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                         onClick={() => deleteReport(report.id)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -191,7 +191,7 @@ export function ReportsSection() {
                     </CardHeader>
                     <CardContent>
                       <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <pre className="whitespace-pre-wrap text-sm font-mono bg-muted/50 p-4 rounded-lg overflow-x-auto">
+                        <pre className="whitespace-pre-wrap text-sm font-mono bg-muted/50 p-2 rounded-lg overflow-x-auto">
                           {report.content}
                         </pre>
                       </div>
@@ -204,7 +204,7 @@ export function ReportsSection() {
         )}
       </div>
 
-      <div className="border rounded-lg p-4">
+      <div className="border rounded-lg p-2">
         <h4 className="font-semibold mb-3">Report Configuration</h4>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -233,10 +233,9 @@ export function ReportsSection() {
   // Don't show full section if no reports
   if (reports.length === 0) {
     return (
-      <div className="border rounded-lg p-4 bg-muted/20">
+      <div className="border rounded-lg p-2 bg-muted/20">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">📊</span>
+          <div className="flex items-center gap-2">
             <div>
               <h3 className="font-semibold text-sm">Weekly Reports</h3>
               <p className="text-xs text-muted-foreground">Generate AI-powered project summaries</p>
@@ -247,8 +246,8 @@ export function ReportsSection() {
           </Button>
         </div>
         {error && (
-          <div className="mt-3 p-3 border border-red-500 rounded-lg bg-red-500/10">
-            <p className="text-xs text-red-500">{error}</p>
+          <div className="mt-3 p-3 border border-border rounded-lg bg-muted/30">
+            <p className="text-xs text-muted-foreground">{error}</p>
           </div>
         )}
       </div>
@@ -259,7 +258,7 @@ export function ReportsSection() {
     <PageSection
       title="Weekly Reports"
       description="Generate comprehensive weekly summaries with AI"
-      icon="📊"
+      icon=""
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
     />

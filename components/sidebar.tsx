@@ -14,16 +14,16 @@ import {
 } from "@/components/ui/sheet"
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: "📊" },
-  { href: "/orders", label: "Orders", icon: "📦" },
-  { href: "/analytics", label: "Analytics", icon: "📈" },
-  { href: "/tasks", label: "Tasks", icon: "✅" },
-  { href: "/recurring-tasks", label: "Recurring Tasks", icon: "🔄" },
-  { href: "/essentials", label: "Essentials", icon: "⭐" },
-  { href: "/guides", label: "Guides & Docs", icon: "📚" },
-  { href: "/feedback", label: "Feedback", icon: "💬" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/orders", label: "Orders" },
+  { href: "/analytics", label: "Analytics" },
+  { href: "/tasks", label: "Tasks" },
+  { href: "/recurring-tasks", label: "Recurring Tasks" },
+  { href: "/essentials", label: "Essentials" },
+  { href: "/guides", label: "Guides & Docs" },
+  { href: "/feedback", label: "Feedback" },
   { type: "separator" },
-  { href: "/docs", label: "Documentation", icon: "📖" },
+  { href: "/docs", label: "Documentation" },
 ]
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
@@ -50,7 +50,6 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
-            <span className="text-lg">{item.icon}</span>
             <span>{item.label}</span>
           </Link>
         )
@@ -61,9 +60,8 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 function SidebarLogo() {
   return (
-    <Link href="/dashboard" className="flex items-center gap-2">
-      <span className="text-2xl">🔐</span>
-      <span className="font-bold text-xl">MiniVault</span>
+    <Link href="/dashboard" className="flex items-center">
+      <span className="font-bold text-sm">MiniVault</span>
     </Link>
   )
 }

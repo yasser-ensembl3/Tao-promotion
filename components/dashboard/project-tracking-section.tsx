@@ -42,12 +42,12 @@ export function OneTimeTasksSection() {
     tags: ""
   })
 
-  // Status options with colors
+  // Status options
   const statusOptions = [
-    { value: "To Do", label: "To Do", color: "slate", emoji: "📋" },
-    { value: "In Progress", label: "In Progress", color: "blue", emoji: "🔄" },
-    { value: "Review", label: "Review", color: "purple", emoji: "👀" },
-    { value: "Done", label: "Done", color: "green", emoji: "✅" },
+    { value: "To Do", label: "To Do", color: "gray", emoji: "" },
+    { value: "In Progress", label: "In Progress", color: "gray", emoji: "" },
+    { value: "Review", label: "Review", color: "gray", emoji: "" },
+    { value: "Done", label: "Done", color: "gray", emoji: "" },
   ]
 
   // Fetch tasks with 60s cache
@@ -108,30 +108,12 @@ export function OneTimeTasksSection() {
 
   // Priority colors
   const getPriorityColor = (priority: string | null) => {
-    if (!priority) return "bg-gray-100 text-gray-600"
-    switch (priority.toLowerCase()) {
-      case "urgent":
-        return "bg-red-100 text-red-700 border-red-300"
-      case "high":
-        return "bg-orange-100 text-orange-700 border-orange-300"
-      case "medium":
-        return "bg-yellow-100 text-yellow-700 border-yellow-300"
-      case "low":
-        return "bg-blue-100 text-blue-600 border-blue-300"
-      default:
-        return "bg-gray-100 text-gray-600 border-gray-300"
-    }
+    return "bg-muted text-muted-foreground border-border"
   }
 
   // Get status badge color
   const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case "To Do": return "bg-slate-100 text-slate-700"
-      case "In Progress": return "bg-blue-100 text-blue-700"
-      case "Review": return "bg-purple-100 text-purple-700"
-      case "Done": return "bg-green-100 text-green-700"
-      default: return "bg-gray-100 text-gray-600"
-    }
+    return "bg-muted text-muted-foreground"
   }
 
   const handleCreateTask = async () => {
@@ -196,25 +178,16 @@ export function OneTimeTasksSection() {
             onClick={() => handleStatusClick(option.value)}
             className={`p-2 rounded-lg border text-center transition-all cursor-pointer hover:shadow-md ${
               isSelected
-                ? option.color === 'slate' ? 'ring-2 ring-slate-400 bg-slate-100 border-slate-400 dark:bg-slate-800' :
-                  option.color === 'blue' ? 'ring-2 ring-blue-400 bg-blue-100 border-blue-400 dark:bg-blue-900' :
-                  option.color === 'purple' ? 'ring-2 ring-purple-400 bg-purple-100 border-purple-400 dark:bg-purple-900' :
-                  'ring-2 ring-green-400 bg-green-100 border-green-400 dark:bg-green-900'
+                ? 'bg-foreground text-background ring-1 ring-foreground'
                 : 'bg-muted/50 border-border hover:bg-muted'
             }`}
           >
-            <div className="text-xl">{option.emoji}</div>
-            <div className={`text-lg font-bold ${
-              count > 0
-                ? option.color === 'slate' ? 'text-slate-600 dark:text-slate-400' :
-                  option.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
-                  option.color === 'purple' ? 'text-purple-600 dark:text-purple-400' :
-                  'text-green-600 dark:text-green-400'
-                : 'text-gray-400'
+            <div className={`text-sm font-bold ${
+              isSelected ? 'text-background' : count > 0 ? 'text-foreground' : 'text-muted-foreground'
             }`}>
               {count}
             </div>
-            <div className="text-[10px] text-muted-foreground truncate">
+            <div className={`text-[10px] truncate ${isSelected ? 'text-background/70' : 'text-muted-foreground'}`}>
               {option.label}
             </div>
           </button>
@@ -222,16 +195,16 @@ export function OneTimeTasksSection() {
       })}
     </div>
   ) : (
-    <div className="text-center p-4 rounded-lg bg-muted/50 border border-dashed">
+    <div className="text-center p-2 rounded-lg bg-muted/50 border border-dashed">
       <p className="text-sm text-muted-foreground">No tasks yet</p>
     </div>
   )
 
   const detailedContent = (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h4 className="font-semibold">
-          {selectedStatusInfo?.emoji} {selectedStatusInfo?.label || "All Tasks"} ({filteredTasks.length})
+          {selectedStatusInfo?.label || "All Tasks"} ({filteredTasks.length})
         </h4>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={fetchTasks} disabled={loading}>
@@ -250,7 +223,7 @@ export function OneTimeTasksSection() {
                   Add a new task to your Notion database.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-2 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="title">Name *</Label>
                   <Input
@@ -269,7 +242,7 @@ export function OneTimeTasksSection() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
                   <div className="grid gap-2">
                     <Label htmlFor="status">Status</Label>
                     <Select
@@ -282,7 +255,7 @@ export function OneTimeTasksSection() {
                       <SelectContent>
                         {statusOptions.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>
-                            {opt.emoji} {opt.label}
+                            {opt.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -360,13 +333,13 @@ export function OneTimeTasksSection() {
       </div>
 
       {error && (
-        <div className="p-4 border border-red-500 rounded-lg bg-red-500/10">
-          <p className="text-sm text-red-500">{error.message || String(error)}</p>
+        <div className="p-2 border border-border rounded-lg bg-muted/30">
+          <p className="text-sm text-muted-foreground">{error.message || String(error)}</p>
         </div>
       )}
 
       {filteredTasks.length === 0 ? (
-        <div className="p-8 border rounded-lg text-center border-dashed">
+        <div className="p-3 border rounded-lg text-center border-dashed">
           <p className="text-sm text-muted-foreground">
             {!config?.notionDatabases?.tasks
               ? "Tasks database not configured."
@@ -379,15 +352,10 @@ export function OneTimeTasksSection() {
             {filteredTasks.map((task) => (
               <div
                 key={task.id}
-                className="flex items-center gap-3 text-sm p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
+                className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
               >
                 {/* Status indicator */}
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                  task.status === "Done" ? "bg-green-500" :
-                  task.status === "In Progress" ? "bg-blue-500" :
-                  task.status === "Review" ? "bg-purple-500" :
-                  "bg-slate-400"
-                }`} />
+                <div className="w-2 h-2 rounded-full flex-shrink-0 bg-muted-foreground" />
 
                 {/* Task info */}
                 <div className="flex-1 min-w-0">
@@ -435,7 +403,7 @@ export function OneTimeTasksSection() {
                   rel="noopener noreferrer"
                   className="p-1.5 rounded hover:bg-muted flex-shrink-0"
                 >
-                  <ExternalLink className="h-4 w-4 text-blue-500" />
+                  <ExternalLink className="h-4 w-4 text-muted-foreground" />
                 </a>
               </div>
             ))}
@@ -449,7 +417,7 @@ export function OneTimeTasksSection() {
     <PageSection
       title="Tasks"
       description="Track tasks and projects from Notion"
-      icon="✅"
+      icon=""
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
       expanded={expanded}

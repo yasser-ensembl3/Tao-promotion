@@ -55,28 +55,28 @@ export function GitHubSection() {
   )
 
   const keyMetrics = data ? (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div className="text-center p-3 bg-muted/50 rounded-lg">
-        <div className="text-2xl font-bold">{data.repository.stars}</div>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="text-center p-2 bg-muted/50 rounded-lg">
+        <div className="text-base font-bold">{data.repository.stars}</div>
         <div className="text-xs text-muted-foreground">Stars</div>
       </div>
-      <div className="text-center p-3 bg-muted/50 rounded-lg">
-        <div className="text-2xl font-bold">{data.repository.forks}</div>
+      <div className="text-center p-2 bg-muted/50 rounded-lg">
+        <div className="text-base font-bold">{data.repository.forks}</div>
         <div className="text-xs text-muted-foreground">Forks</div>
       </div>
-      <div className="text-center p-3 bg-muted/50 rounded-lg">
-        <div className="text-2xl font-bold">{data.repository.openIssues}</div>
+      <div className="text-center p-2 bg-muted/50 rounded-lg">
+        <div className="text-base font-bold">{data.repository.openIssues}</div>
         <div className="text-xs text-muted-foreground">Open Issues</div>
       </div>
-      <div className="text-center p-3 bg-muted/50 rounded-lg">
-        <div className="text-2xl font-bold">{data.pullRequests.length}</div>
+      <div className="text-center p-2 bg-muted/50 rounded-lg">
+        <div className="text-base font-bold">{data.pullRequests.length}</div>
         <div className="text-xs text-muted-foreground">Open PRs</div>
       </div>
     </div>
   ) : null
 
   const detailedContent = (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {loading && (
         <div className="text-center py-8">
           <div className="text-muted-foreground">Loading GitHub data...</div>
@@ -84,7 +84,7 @@ export function GitHubSection() {
       )}
 
       {error && (
-        <div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
+        <div className="p-2 border border-destructive/50 rounded-lg bg-destructive/10">
           <div className="flex items-center space-x-2 text-destructive">
             <AlertCircle className="h-4 w-4" />
             <span className="text-sm">{error.message || "Failed to fetch GitHub data"}</span>
@@ -114,7 +114,7 @@ export function GitHubSection() {
               </Button>
             </div>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-2">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h5 className="font-medium">{data.repository.fullName}</h5>
@@ -264,7 +264,7 @@ export function GitHubSection() {
     <PageSection
       title="GitHub Repository"
       description="Track repository activity, commits, issues, and pull requests"
-      icon="🐙"
+      icon=""
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
     />

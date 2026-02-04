@@ -29,13 +29,13 @@ export function DashboardSection({
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-4 sm:p-6">
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-2 sm:p-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <span className="text-xl sm:text-2xl flex-shrink-0">{icon}</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-base flex-shrink-0">{icon}</span>
                 <div className="min-w-0">
-                  <CardTitle className="text-base sm:text-xl truncate">{title}</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm line-clamp-1">{description}</CardDescription>
+                  <CardTitle className="text-sm truncate">{title}</CardTitle>
+                  <CardDescription className="text-xs line-clamp-1">{description}</CardDescription>
                 </div>
               </div>
               <Button variant="ghost" size="icon" className="flex-shrink-0">
@@ -47,7 +47,7 @@ export function DashboardSection({
               </Button>
             </div>
             {keyMetrics && (
-              <div className="mt-3 sm:mt-4">
+              <div className="mt-2">
                 {keyMetrics}
               </div>
             )}
@@ -55,7 +55,7 @@ export function DashboardSection({
         </CollapsibleTrigger>
         {detailedContent && (
           <CollapsibleContent>
-            <CardContent className="p-4 sm:p-6">
+            <CardContent className="p-2 sm:p-3">
               {detailedContent}
             </CardContent>
           </CollapsibleContent>

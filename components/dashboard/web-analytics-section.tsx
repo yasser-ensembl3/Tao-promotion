@@ -43,24 +43,24 @@ interface AnalyticsRecord {
 type MetricKey = "Sessions" | "Conversion Rate" | "Add to Cart Rate" | "Checkout Rate"
 
 const METRIC_CONFIGS: Record<MetricKey, { label: string; format: (v: number) => string; color: string }> = {
-  Sessions: { label: "Sessions", format: (v) => v.toLocaleString(), color: "#3b82f6" },
-  "Conversion Rate": { label: "Conv. Rate", format: (v) => `${v.toFixed(2)}%`, color: "#10b981" },
-  "Add to Cart Rate": { label: "Add to Cart", format: (v) => `${v.toFixed(2)}%`, color: "#f59e0b" },
-  "Checkout Rate": { label: "Checkout", format: (v) => `${v.toFixed(2)}%`, color: "#8b5cf6" },
+  Sessions: { label: "Sessions", format: (v) => v.toLocaleString(), color: "#666666" },
+  "Conversion Rate": { label: "Conv. Rate", format: (v) => `${v.toFixed(2)}%`, color: "#666666" },
+  "Add to Cart Rate": { label: "Add to Cart", format: (v) => `${v.toFixed(2)}%`, color: "#666666" },
+  "Checkout Rate": { label: "Checkout", format: (v) => `${v.toFixed(2)}%`, color: "#666666" },
 }
 
 const TRAFFIC_COLORS: Record<string, string> = {
-  Direct: "#3b82f6",
-  Google: "#ea4335",
-  Facebook: "#1877f2",
-  Twitter: "#1da1f2",
-  LinkedIn: "#0077b5",
-  Other: "#6b7280",
+  Direct: "#666666",
+  Google: "#555555",
+  Facebook: "#444444",
+  Twitter: "#777777",
+  LinkedIn: "#888888",
+  Other: "#999999",
 }
 
 const DEVICE_COLORS: Record<string, string> = {
-  Desktop: "#8b5cf6",
-  Mobile: "#f59e0b",
+  Desktop: "#666666",
+  Mobile: "#888888",
 }
 
 export function WebAnalyticsSection() {
@@ -118,7 +118,7 @@ export function WebAnalyticsSection() {
   const totalTraffic = trafficData.reduce((sum, item) => sum + item.value, 0)
 
   const keyMetrics = latestRecord ? (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
       {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((metric) => {
         const config = METRIC_CONFIGS[metric]
         const value = latestRecord[metric] ?? 0
@@ -128,19 +128,19 @@ export function WebAnalyticsSection() {
           <button
             key={metric}
             onClick={() => handleCardClick(metric)}
-            className={`text-center p-3 rounded-lg transition-all cursor-pointer hover:shadow-md ${
+            className={`text-center p-2 rounded-lg transition-all cursor-pointer hover:shadow-md ${
               isSelected
-                ? "bg-blue-600 border-blue-700 ring-2 ring-blue-400"
-                : "bg-blue-50 border-blue-200 hover:bg-blue-100 dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900"
+                ? "bg-foreground text-background ring-1 ring-foreground"
+                : "bg-muted/50 border-border hover:bg-muted"
             } border`}
           >
-            <div className={`text-xl font-bold ${isSelected ? "text-white" : "text-blue-700 dark:text-blue-300"}`}>
+            <div className={`text-base font-bold ${isSelected ? "text-background" : "text-foreground"}`}>
               {config.format(value)}
             </div>
-            <div className={`text-xs ${isSelected ? "text-blue-100" : "text-blue-600 dark:text-blue-400"}`}>
+            <div className={`text-xs ${isSelected ? "text-background/70" : "text-muted-foreground"}`}>
               {config.label}
             </div>
-            <div className={`text-[10px] ${isSelected ? "text-blue-200" : "text-muted-foreground"}`}>
+            <div className={`text-[10px] ${isSelected ? "text-background/50" : "text-muted-foreground"}`}>
               {latestRecord.Period}
             </div>
           </button>
@@ -148,14 +148,14 @@ export function WebAnalyticsSection() {
       })}
     </div>
   ) : (
-    <div className="text-center p-6 rounded-lg bg-muted/50 border border-dashed">
+    <div className="text-center p-2 rounded-lg bg-muted/50 border border-dashed">
       <p className="text-sm text-muted-foreground">No analytics data yet. Configure your Web Analytics database.</p>
     </div>
   )
 
   const detailedContent = (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-2">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <h4 className="font-semibold">Traffic & Conversion Trend</h4>
           <span className="text-xs text-muted-foreground">({records.length} periods)</span>
@@ -171,29 +171,29 @@ export function WebAnalyticsSection() {
       </div>
 
       {!config?.notionDatabases?.webAnalytics ? (
-        <div className="p-8 border rounded-lg text-center border-dashed bg-muted/30">
+        <div className="p-3 border rounded-lg text-center border-dashed bg-muted/30">
           <p className="text-sm text-muted-foreground">Web Analytics database not configured.</p>
         </div>
       ) : loading ? (
-        <div className="p-8 border rounded-lg text-center">
+        <div className="p-3 border rounded-lg text-center">
           <p className="text-sm text-muted-foreground">Loading analytics data...</p>
         </div>
       ) : records.length === 0 ? (
-        <div className="p-8 border rounded-lg text-center border-dashed">
+        <div className="p-3 border rounded-lg text-center border-dashed">
           <p className="text-sm text-muted-foreground">No analytics data available</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-2">
           {/* Main trend chart */}
-          <div className="border rounded-lg p-4">
-            <div className="mb-4 flex items-center justify-between">
+          <div className="border rounded-lg p-2">
+            <div className="mb-2 flex items-center justify-between">
               <div>
-                <h5 className="text-lg font-semibold">{METRIC_CONFIGS[selectedMetric].label}</h5>
+                <h5 className="text-sm font-semibold">{METRIC_CONFIGS[selectedMetric].label}</h5>
                 <p className="text-xs text-muted-foreground">Click a card above to switch metrics</p>
               </div>
               {latestRecord && (
                 <div className="text-right">
-                  <p className="text-3xl font-bold text-blue-600">
+                  <p className="text-xl font-bold text-foreground">
                     {METRIC_CONFIGS[selectedMetric].format(latestRecord[selectedMetric] ?? 0)}
                   </p>
                   <p className="text-xs text-muted-foreground">Latest: {latestRecord.Period}</p>
@@ -201,7 +201,7 @@ export function WebAnalyticsSection() {
               )}
             </div>
 
-            <div className="h-64 w-full">
+            <div className="h-40 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -233,11 +233,11 @@ export function WebAnalyticsSection() {
 
           {/* Traffic sources and device breakdown */}
           {latestRecord && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {/* Traffic Sources */}
-              <div className="border rounded-lg p-4">
-                <h5 className="font-semibold mb-3">Traffic Sources</h5>
-                <div className="flex items-center gap-4">
+              <div className="border rounded-lg p-2">
+                <h5 className="font-semibold mb-2">Traffic Sources</h5>
+                <div className="flex items-center gap-2">
                   <div className="h-40 w-40">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -278,8 +278,8 @@ export function WebAnalyticsSection() {
               </div>
 
               {/* Device Breakdown */}
-              <div className="border rounded-lg p-4">
-                <h5 className="font-semibold mb-3">Device Breakdown</h5>
+              <div className="border rounded-lg p-2">
+                <h5 className="font-semibold mb-2">Device Breakdown</h5>
                 <div className="h-40">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={deviceData} layout="vertical">
@@ -295,7 +295,7 @@ export function WebAnalyticsSection() {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-2 flex justify-center gap-4 text-xs">
+                <div className="mt-1 flex justify-center gap-2 text-xs">
                   {deviceData.map((device) => (
                     <div key={device.name} className="flex items-center gap-1">
                       <div
@@ -314,27 +314,27 @@ export function WebAnalyticsSection() {
 
           {/* Conversion funnel */}
           {latestRecord && (
-            <div className="border rounded-lg p-3 sm:p-4">
-              <h5 className="font-semibold mb-3 text-sm sm:text-base">Conversion Funnel</h5>
+            <div className="border rounded-lg p-3 sm:p-2">
+              <h5 className="font-semibold mb-2 text-sm sm:text-base">Conversion Funnel</h5>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <div className="text-center p-2 sm:p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                  <p className="text-lg sm:text-2xl font-bold text-blue-600">{(latestRecord.Sessions ?? 0).toLocaleString()}</p>
+                <div className="text-center p-2 sm:p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm sm:text-base font-bold text-foreground">{(latestRecord.Sessions ?? 0).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Sessions</p>
                 </div>
-                <div className="text-center p-2 sm:p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
-                  <p className="text-lg sm:text-2xl font-bold text-yellow-600">
+                <div className="text-center p-2 sm:p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm sm:text-base font-bold text-foreground">
                     {(latestRecord["Add to Cart Rate"] ?? 0).toFixed(1)}%
                   </p>
                   <p className="text-xs text-muted-foreground">Add to Cart</p>
                 </div>
-                <div className="text-center p-2 sm:p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
-                  <p className="text-lg sm:text-2xl font-bold text-purple-600">
+                <div className="text-center p-2 sm:p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm sm:text-base font-bold text-foreground">
                     {(latestRecord["Checkout Rate"] ?? 0).toFixed(1)}%
                   </p>
                   <p className="text-xs text-muted-foreground">Checkout</p>
                 </div>
-                <div className="text-center p-2 sm:p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                  <p className="text-lg sm:text-2xl font-bold text-green-600">
+                <div className="text-center p-2 sm:p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm sm:text-base font-bold text-foreground">
                     {(latestRecord["Conversion Rate"] ?? 0).toFixed(2)}%
                   </p>
                   <p className="text-xs text-muted-foreground">Converted</p>
@@ -344,7 +344,7 @@ export function WebAnalyticsSection() {
           )}
 
           {/* Recent periods table */}
-          <div className="border rounded-lg p-4">
+          <div className="border rounded-lg p-2">
             <p className="text-xs font-medium text-muted-foreground mb-2">Recent Periods</p>
             <div className="space-y-1">
               {records.slice(0, 5).map((record) => (
@@ -360,7 +360,7 @@ export function WebAnalyticsSection() {
                     href={record.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
+                    className="text-muted-foreground hover:underline"
                   >
                     View
                   </a>
@@ -377,7 +377,7 @@ export function WebAnalyticsSection() {
     <PageSection
       title="Web Analytics"
       description="Traffic, conversion and discoverability signals"
-      icon="📊"
+      icon=""
       keyMetrics={keyMetrics}
       detailedContent={detailedContent}
       expanded={expanded}

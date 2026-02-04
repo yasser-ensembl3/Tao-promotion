@@ -50,13 +50,13 @@ export function PageSection({
 
   return (
     <Card>
-      <CardHeader className="p-4 sm:p-6">
+      <CardHeader className="p-2 sm:p-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <span className="text-xl sm:text-2xl flex-shrink-0">{icon}</span>
+          <div className="flex items-center space-x-2">
+            <span className="text-base flex-shrink-0">{icon}</span>
             <div className="min-w-0">
-              <CardTitle className="text-base sm:text-xl">{title}</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">{description}</CardDescription>
+              <CardTitle className="text-sm">{title}</CardTitle>
+              <CardDescription className="text-xs">{description}</CardDescription>
             </div>
           </div>
           {expanded && detailedContent && (
@@ -73,7 +73,7 @@ export function PageSection({
         </div>
         {keyMetrics && (
           <div
-            className={`mt-3 sm:mt-4 ${detailedContent && !expanded && !isControlled ? 'cursor-pointer' : ''}`}
+            className={`mt-2 ${detailedContent && !expanded && !isControlled ? 'cursor-pointer' : ''}`}
             onClick={handleMetricsClick}
           >
             {keyMetrics}
@@ -81,7 +81,7 @@ export function PageSection({
         )}
       </CardHeader>
       {expanded && detailedContent && (
-        <CardContent className="p-4 sm:p-6 pt-0 border-t">
+        <CardContent className="p-2 sm:p-3 pt-0 border-t">
           {detailedContent}
         </CardContent>
       )}
