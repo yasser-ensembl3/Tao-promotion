@@ -1,43 +1,25 @@
-# MiniVault
+# MiniVault — Tao Promotion
 
-Unified project management dashboard that integrates Notion, Google Drive, Gmail, GitHub, and Shopify into a single interface. Built with Next.js 14. Follows a **one repo = one project** architecture — each deployment is dedicated to a single project configured via environment variables.
+E-commerce dashboard for Shopify store management. Consolidates orders, sales analytics, web traffic, customer feedback, and operational tasks into a single interface. All data lives in Notion databases. Built with Next.js 14.
 
-## Features
+Follows a **one repo = one store** model — each deployment manages a single Shopify store configured via environment variables.
 
-### Dashboard Sections
-
-The dashboard is modular with collapsible sections, displayed in priority order:
+## What It Does
 
 | Section | Description |
 |---------|-------------|
-| Orders | Order fulfillment tracking |
-| Goals | Output metrics (sales, subscribers, reviews) with interactive charts |
-| Sales Tracking | Revenue and sales analytics |
-| Web Analytics | Traffic and conversion data |
-| Metrics | Input metrics (posts, interactions, marketing) with interactive charts |
-| Essentials | Critical tools, milestones, resources, partnerships |
-| Guides & Docs | Documentation links in card grid |
-| Overview | Project description, vision, milestones |
-| Recurring Tasks | Repeating task tracking |
-| Tasks | One-time task management (Kanban) |
-| Reports | AI-generated weekly summaries |
-| User Feedback | Feedback collection and display |
+| **Orders** | Unfulfilled/fulfilled orders, revenue totals, payment and fulfillment status tracking |
+| **Goals** | Output metrics — sales count, subscribers, Amazon reviews — with interactive line charts |
+| **Sales Tracking** | Period-over-period sales trends, gross/net/total sales, discounts, returns, shipping, AOV |
+| **Web Analytics** | Sessions, conversion rates, traffic sources (Google, Facebook, Direct, etc.), device breakdown |
+| **Metrics** | Input metrics — posts, interactions, marketing ROI — with interactive line charts |
+| **Essentials** | Tools, milestones, strategies, resources, partnerships, achievements by priority |
+| **Tasks** | One-time task management with status flow (To Do → In Progress → Review → Done) |
+| **Recurring Tasks** | Repeating tasks tracked by frequency (daily/weekly/monthly/quarterly) |
+| **Feedback** | Customer/user feedback collection with time-period filtering |
+| **Guides & Docs** | Documentation links in a card grid with type badges |
 
-Each section has key metrics visible when collapsed and detailed content when expanded.
-
-### Integrations
-
-| Service | Features |
-|---------|----------|
-| Notion | Full CRUD on 13+ databases (tasks, metrics, goals, orders, feedback, etc.) |
-| Google Drive | Browse folders and files, document preview |
-| GitHub | Repository metadata, recent commits, open issues and PRs |
-| Gmail | Message reading (optional) |
-| Shopify | Sales data integration |
-
-### Authentication
-
-NextAuth.js with Google and GitHub OAuth providers. JWT-based token storage with automatic session extension. Protected pages redirect to sign-in.
+Each section is collapsible — shows key metrics when collapsed, full detail when expanded.
 
 ## Tech Stack
 
@@ -45,13 +27,11 @@ NextAuth.js with Google and GitHub OAuth providers. JWT-based token storage with
 |-----------|------------|
 | Framework | Next.js 14 (App Router), React 18 |
 | Language | TypeScript |
-| Styling | Tailwind CSS 4 (dark mode only), Radix UI, shadcn/ui |
+| Styling | Tailwind CSS 4 (dark mode only), shadcn/ui, Radix UI |
 | Auth | NextAuth.js (Google + GitHub OAuth) |
-| Data fetching | SWR 2.3.8 (60-second cache) |
-| Charts | Recharts |
-| Database | Notion API (v2022-06-28) |
-| MCP server | Model Context Protocol for Claude integration |
-| Docs | Nextra |
+| Data fetching | SWR (60-second cache) |
+| Charts | Recharts (line, bar, pie) |
+| Database | Notion API |
 | Deployment | Vercel |
 
 ## Architecture
@@ -59,133 +39,183 @@ NextAuth.js with Google and GitHub OAuth providers. JWT-based token storage with
 ```
 MiniVault-TaoPromotion/
 ├── app/
-│   ├── layout.tsx                          # Root layout with providers
-│   ├── page.tsx                            # Home (redirects to /dashboard)
-│   ├── auth/signin/page.tsx                # OAuth sign-in page
-│   ├── dashboard/page.tsx                  # Main dashboard
-│   ├── tasks/page.tsx                      # Detailed task page
-│   ├── recurring-tasks/page.tsx            # Recurring tasks page
-│   ├── orders/page.tsx                     # Orders page
-│   ├── overview/page.tsx                   # Project overview
-│   ├── essentials/page.tsx                 # Essentials page
-│   ├── guides/page.tsx                     # Guides & docs
-│   ├── feedback/page.tsx                   # Feedback page
-│   ├── reports/page.tsx                    # Reports page
-│   ├── analytics/page.tsx                  # Analytics page
-│   ├── docs/[[...mdxPath]]/page.tsx        # Nextra documentation
+│   ├── layout.tsx                      # Root layout (SessionProvider, SWR)
+│   ├── page.tsx                        # Redirects to /dashboard
+│   ├── dashboard/page.tsx              # Main dashboard (all sections)
+│   ├── orders/page.tsx                 # Orders with fulfillment/payment filters
+│   ├── analytics/page.tsx              # Goals + Metrics + Sales + Web Analytics
+│   ├── tasks/page.tsx                  # Kanban task board
+│   ├── recurring-tasks/page.tsx        # Recurring task tracking
+│   ├── feedback/page.tsx               # Feedback with time filters
+│   ├── essentials/page.tsx             # Tools & resources by type
+│   ├── guides/page.tsx                 # Documentation links
+│   ├── overview/page.tsx               # Project description
+│   ├── reports/page.tsx                # AI weekly reports
+│   ├── auth/signin/page.tsx            # OAuth sign-in
 │   └── api/
-│       ├── auth/[...nextauth]/route.ts     # NextAuth handler
-│       ├── notion/
-│       │   ├── metrics/route.ts            # Input metrics CRUD
-│       │   ├── goals/route.ts              # Output metrics CRUD
-│       │   ├── tasks/route.ts              # Task management
-│       │   ├── recurring-tasks/route.ts    # Recurring tasks
-│       │   ├── orders/route.ts             # Order management
-│       │   ├── documents/route.ts          # Documentation links
-│       │   ├── feedback/route.ts           # User feedback
-│       │   ├── essentials/route.ts         # Tools, milestones, resources
-│       │   ├── sales/route.ts              # Sales tracking
-│       │   ├── milestones/route.ts         # Project milestones
-│       │   ├── project-overview/route.ts   # Project description
-│       │   ├── shopify/route.ts            # Shopify integration
-│       │   └── page-content/route.ts       # Page content fetch
-│       ├── github/repo/route.ts            # GitHub repo proxy
-│       ├── drive/files/route.ts            # Google Drive proxy
-│       ├── google/gmail/route.ts           # Gmail integration
-│       ├── ai/chat/route.ts                # AI chat
-│       └── feedback/save/route.ts          # Feedback file save
+│       ├── auth/[...nextauth]/         # NextAuth handler
+│       └── notion/
+│           ├── sales/route.ts          # Orders (fetch with dynamic property extraction)
+│           ├── shopify/route.ts        # Sales tracking + Web analytics (period-sorted)
+│           ├── metrics/route.ts        # Input/output metrics (shared route)
+│           ├── goals/route.ts          # Output metrics
+│           ├── tasks/route.ts          # Task CRUD
+│           ├── recurring-tasks/route.ts
+│           ├── feedback/route.ts       # Feedback CRUD
+│           ├── essentials/route.ts     # Essentials CRUD
+│           ├── documents/route.ts      # Documentation links CRUD
+│           ├── milestones/route.ts     # Project milestones
+│           └── project-overview/route.ts
 ├── components/
-│   ├── sidebar.tsx                         # Navigation (desktop + mobile)
-│   ├── auth/session-provider.tsx           # NextAuth SessionProvider
+│   ├── sidebar.tsx                     # Navigation (desktop sidebar + mobile hamburger)
 │   ├── dashboard/
-│   │   ├── main-dashboard.tsx              # Master orchestrator
-│   │   ├── dashboard-section.tsx           # Reusable collapsible wrapper
-│   │   ├── goals-metrics-section.tsx       # Output metrics + charts
-│   │   ├── metrics-section.tsx             # Input metrics + charts
-│   │   ├── project-tracking-section.tsx    # Tasks (Kanban)
-│   │   ├── recurring-tasks-section.tsx     # Recurring tasks
-│   │   ├── orders-section.tsx              # Order management
-│   │   ├── essentials-section.tsx          # Tools & resources
-│   │   ├── guides-docs-section.tsx         # Doc links grid
-│   │   ├── overview-section.tsx            # Project overview
-│   │   ├── sales-tracking-section.tsx      # Sales analytics
-│   │   ├── web-analytics-section.tsx       # Web traffic
-│   │   ├── reports-section.tsx             # AI weekly reports
-│   │   ├── user-feedback-section.tsx       # Feedback
-│   │   └── ...                             # Other sections
-│   └── ui/                                # shadcn/ui components
+│   │   ├── main-dashboard.tsx          # Section orchestrator
+│   │   ├── dashboard-section.tsx       # Reusable collapsible section wrapper
+│   │   ├── orders-section.tsx          # 4 metric cards + order table
+│   │   ├── goals-metrics-section.tsx   # Output metrics with clickable cards → charts
+│   │   ├── sales-tracking-section.tsx  # 5 sales metrics + trend chart + breakdown
+│   │   ├── web-analytics-section.tsx   # 4 metrics + traffic pie + device bar + funnel
+│   │   ├── metrics-section.tsx         # Input metrics with clickable cards → charts
+│   │   ├── essentials-section.tsx      # Grid by type, color-coded by priority
+│   │   ├── project-tracking-section.tsx # Tasks (Kanban)
+│   │   ├── recurring-tasks-section.tsx
+│   │   ├── user-feedback-section.tsx   # Feedback with CRUD
+│   │   ├── guides-docs-section.tsx     # Link cards
+│   │   ├── overview-section.tsx
+│   │   └── reports-section.tsx         # AI reports (localStorage)
+│   └── ui/                            # shadcn/ui components
 ├── lib/
-│   ├── auth.ts                            # NextAuth config
-│   ├── project-config.ts                  # Env-based project config
-│   ├── use-cached-fetch.ts                # SWR hooks
-│   ├── swr-config.tsx                     # SWR provider (60s cache)
-│   ├── api-auth.ts                        # API auth utilities
-│   └── utils.ts                           # Helpers (cn)
-├── mcp-server/                            # MCP server for Claude integration
-├── content/docs/                          # Nextra MDX documentation
-└── types/next-auth.d.ts                   # NextAuth type augmentation
+│   ├── auth.ts                        # NextAuth config (Google + GitHub OAuth)
+│   ├── project-config.ts              # Env-based project config loader
+│   ├── use-cached-fetch.ts            # SWR hooks (useNotionData, useCachedFetch)
+│   ├── swr-config.tsx                 # SWR provider (60s cache, 2 retries)
+│   ├── api-auth.ts                    # API auth utilities
+│   └── utils.ts                       # cn() helper
+├── mcp-server/                        # MCP server for Claude integration
+└── types/next-auth.d.ts               # NextAuth session type extension
 ```
 
-## Configuration
+## Data Flow
 
-All project settings via environment variables. No database switching needed.
+```
+Client Components
+    → useProjectConfig() gets database IDs from env
+    → useNotionData(endpoint, databaseId) via SWR
+    → /api/notion/* routes query Notion API with NOTION_TOKEN
+    → Parse response, return formatted JSON
+    → Cached 60 seconds (SWR)
+    → Components render
+```
 
-### Required
+## Notion Database Schemas
+
+### Orders
+
+| Property | Type | Values |
+|----------|------|--------|
+| Order | Text | Order ID |
+| Date | Date | Order date |
+| Items | Number | Item count |
+| Total $ | Number | Order total |
+| Payment | Select | Paid, Pending, Refunded |
+| Fulfillment | Select | Fulfilled, Unfulfilled |
+| Customer | Text | Customer name |
+
+### Sales Tracking
+
+| Property | Type |
+|----------|------|
+| Period | Text ("Jan 1-31 2025" format) |
+| Gross Sales, Net Sales, Total Sales | Number |
+| Discounts, Returns, Taxes, Shipping | Number |
+| Paid Orders, Orders Fulfilled | Number |
+| Average Order Value | Number |
+
+### Web Analytics
+
+| Property | Type |
+|----------|------|
+| Period | Text (same format) |
+| Sessions | Number |
+| Conversion Rate, Add to Cart Rate, Checkout Rate | Number |
+| Direct, Google, Facebook, Twitter, LinkedIn, Other | Number (traffic sources) |
+| Desktop, Mobile | Number (device split) |
+
+### Goals / Metrics
+
+| Property | Type |
+|----------|------|
+| Metric Name | Title |
+| Number | Number |
+| Last Updated | Date |
+
+### Tasks
+
+| Property | Type | Values |
+|----------|------|--------|
+| Name | Title | Task name |
+| Status | Select | To Do, In Progress, Review, Done |
+| Priority | Select | Optional |
+| Assignee | Text | Optional |
+| Tags | Multi-select | Optional |
+| Due Date | Date | Optional |
+
+## Setup
+
+### Prerequisites
+
+- Node.js 18+
+- Notion workspace with API integration
+- Google Cloud project (OAuth credentials)
+
+### Installation
+
+```bash
+npm install
+cp .env.example .env.local
+# Edit .env.local
+npm run dev
+```
+
+### Environment Variables
+
+**Auth:**
 
 | Variable | Description |
 |----------|-------------|
-| `NEXTAUTH_URL` | App URL (default: http://localhost:3000) |
-| `NEXTAUTH_SECRET` | Session secret (`openssl rand -base64 32`) |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
-| `GITHUB_ID` | GitHub OAuth app ID |
-| `GITHUB_SECRET` | GitHub OAuth app secret |
+| `NEXTAUTH_URL` | App URL |
+| `NEXTAUTH_SECRET` | Session secret |
+| `GOOGLE_CLIENT_ID` / `SECRET` | Google OAuth |
+| `GITHUB_ID` / `SECRET` | GitHub OAuth |
 | `NOTION_TOKEN` | Notion integration token |
 
-### Project Config
+**Notion Databases (set to enable section):**
+
+| Variable | Section |
+|----------|---------|
+| `NEXT_PUBLIC_NOTION_DB_ORDERS` | Orders |
+| `NEXT_PUBLIC_NOTION_DB_GOALS` | Goals (output metrics) |
+| `NEXT_PUBLIC_NOTION_DB_SALES_TRACKING` | Sales tracking |
+| `NEXT_PUBLIC_NOTION_DB_WEB_ANALYTICS` | Web analytics |
+| `NEXT_PUBLIC_NOTION_DB_METRICS` | Metrics (input metrics) |
+| `NEXT_PUBLIC_NOTION_DB_ESSENTIALS` | Essentials |
+| `NEXT_PUBLIC_NOTION_DB_TASKS` | Tasks |
+| `NEXT_PUBLIC_NOTION_DB_RECURRING_TASKS` | Recurring tasks |
+| `NEXT_PUBLIC_NOTION_DB_FEEDBACK` | Feedback |
+| `NEXT_PUBLIC_NOTION_DB_DOCUMENTS` | Guides & docs |
+| `NEXT_PUBLIC_NOTION_DB_MILESTONES` | Milestones |
+
+**Project:**
 
 | Variable | Description |
 |----------|-------------|
 | `NEXT_PUBLIC_PROJECT_NAME` | Display name |
-| `NEXT_PUBLIC_PROJECT_DESCRIPTION` | Project description |
-| `NEXT_PUBLIC_GITHUB_OWNER` | GitHub owner |
-| `NEXT_PUBLIC_GITHUB_REPO` | GitHub repo name |
-| `NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID` | Drive folder ID |
-
-### Notion Database IDs
-
-| Variable | Section |
-|----------|---------|
-| `NEXT_PUBLIC_NOTION_DB_TASKS` | Tasks |
-| `NEXT_PUBLIC_NOTION_DB_RECURRING_TASKS` | Recurring tasks |
-| `NEXT_PUBLIC_NOTION_DB_GOALS` | Goals (output metrics) |
-| `NEXT_PUBLIC_NOTION_DB_METRICS` | Metrics (input metrics) |
-| `NEXT_PUBLIC_NOTION_DB_MILESTONES` | Milestones |
-| `NEXT_PUBLIC_NOTION_DB_DOCUMENTS` | Documentation links |
-| `NEXT_PUBLIC_NOTION_DB_FEEDBACK` | User feedback |
-| `NEXT_PUBLIC_NOTION_DB_ORDERS` | Orders |
-| `NEXT_PUBLIC_NOTION_DB_ESSENTIALS` | Essentials |
-| `NEXT_PUBLIC_NOTION_DB_SALES` | Sales |
-| `NEXT_PUBLIC_NOTION_DB_SALES_TRACKING` | Sales tracking |
-| `NEXT_PUBLIC_NOTION_DB_WEB_ANALYTICS` | Web analytics |
-
-## Setup
-
-```bash
-cd MiniVault-TaoPromotion
-npm install
-cp .env.example .env.local
-# Edit .env.local with your credentials
-npm run dev    # Starts on localhost:3000
-```
+| `NEXT_PUBLIC_PROJECT_DESCRIPTION` | Description |
 
 ## Deployment
 
-Optimized for Vercel:
+Optimized for Vercel. Add all env vars to dashboard.
 
 ```bash
-npm run build
-npm start
+npm run build && npm start
 ```
-
-Add all environment variables to the Vercel dashboard. Uses `vercel.json` for configuration.
